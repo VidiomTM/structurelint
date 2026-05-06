@@ -2,6 +2,7 @@ root: true
 
 exclude:
   - testdata/**
+  - internal/ptest/testdata/**
   - .git
   - docs/**
   - examples/**
@@ -81,6 +82,8 @@ rules:
       - "internal/rules/structure/*.go"     # Structure rules (tested via structure tests)
       - "internal/rules/test/*.go"          # Test rules (tested via test tests)
       - "internal/rules/predicate/*.go"     # Predicate rules
+      - "internal/ptest/*.go"                 # PBT shared generators
+      - "fuzz/*.go"                            # Fuzz targets
 
   test-location:
     integration-test-dir: "tests"    # Allow integration tests in tests/ folder
@@ -94,6 +97,8 @@ rules:
       - "internal/linter/init_test.go"
       - "internal/rules/structure/enhanced_violations_test.go"
       - "internal/rules/structure/language_aware_naming_test.go"
+      - "internal/ptest/**"                    # PBT shared generators (no adjacent source)
+      - "fuzz/**"                              # Fuzz targets (no adjacent source)
 
   # Phase 4: File Content Templates
   # Temporarily disabled AAA enforcement for new Phase 4/5 test files
