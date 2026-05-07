@@ -85,18 +85,13 @@ func globToRegexp(pattern string) *regexp.Regexp {
 			b.WriteByte(c)
 			i++
 		case '[':
-			// Pass through character class until the closing `]`.
-			// Convert `[!` negation (glob) to `[^` (regex).
+			// Pass through character class as-is until the closing `]`.
 			j := i + 1
 			for j < len(pattern) && pattern[j] != ']' {
 				j++
 			}
 			if j < len(pattern) {
-				cls := pattern[i : j+1]
-				if len(cls) > 2 && cls[1] == '!' {
-					cls = "[" + "^" + cls[2:]
-				}
-				b.WriteString(cls)
+				b.WriteString(pattern[i : j+1])
 				i = j + 1
 			} else {
 				b.WriteString("\\[")
