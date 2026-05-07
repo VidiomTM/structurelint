@@ -1,6 +1,7 @@
 package linter
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Jonathangadeaharder/structurelint/internal/config"
@@ -8,6 +9,8 @@ import (
 	"github.com/Jonathangadeaharder/structurelint/internal/rules"
 	"github.com/Jonathangadeaharder/structurelint/internal/walker"
 )
+
+var ErrNoConfig = errors.New("no .structurelint.yml configuration file found")
 
 type Linter struct {
 	config  *config.Config
@@ -23,9 +26,13 @@ func New() *Linter {
 func (l *Linter) Lint(path string) ([]Violation, error) {
 	l.rootDir = path
 
-	configs, err := config.FindConfigsWithGitignore(path)
+	configs, found, err := config.FindConfigsWithGitignore(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
+	}
+
+	if !found {
+		return nil, ErrNoConfig
 	}
 
 	l.config = config.Merge(configs...)

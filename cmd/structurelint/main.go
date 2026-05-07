@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -143,6 +144,11 @@ func executeLinter(path, format string) error {
 	l := linter.New()
 	violations, err := l.Lint(path)
 	if err != nil {
+		if errors.Is(err, linter.ErrNoConfig) {
+			fmt.Fprintf(os.Stderr, "Error: no .structurelint.yml configuration file found.\n")
+			fmt.Fprintf(os.Stderr, "Create one with: structurelint --init\n")
+			os.Exit(1)
+		}
 		return err
 	}
 

@@ -195,22 +195,40 @@ rules:
 }
 
 func TestLint_NoConfig(t *testing.T) {
-	// Create a temporary directory without config
 	tmpDir, err := os.MkdirTemp("", "linter-test-noconfig")
 	require.NoError(t, err)
 	defer os.RemoveAll(tmpDir)
 
-	// Create a simple file
 	testFile := filepath.Join(tmpDir, "test.ts")
 	require.NoError(t, os.WriteFile(testFile, []byte("// test"), 0644))
 
-	// Run linter (should not fail even without config)
-	linter := New()
-	violations, err := linter.Lint(tmpDir)
+	l := New()
+	_, err = l.Lint(tmpDir)
+
+	assert.ErrorIs(t, err, ErrNoConfig)
+}
+
+func TestLint_WithConfig_NoViolations(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "linter-test-withconfig")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	configContent := `
+root: true
+rules:
+  max-depth:
+    max: 10
+`
+	configFile := filepath.Join(tmpDir, ".structurelint.yml")
+	require.NoError(t, os.WriteFile(configFile, []byte(configContent), 0644))
+
+	testFile := filepath.Join(tmpDir, "test.ts")
+	require.NoError(t, os.WriteFile(testFile, []byte("// test"), 0644))
+
+	l := New()
+	violations, err := l.Lint(tmpDir)
 
 	require.NoError(t, err)
-
-	// Should have no violations (no rules configured)
 	assert.Empty(t, violations)
 }
 

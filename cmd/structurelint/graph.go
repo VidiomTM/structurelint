@@ -53,7 +53,7 @@ func runGraph(args []string) (err error) {
 	}
 
 	// Load configuration
-	configs, err := config.FindConfigsWithGitignore(path)
+	configs, _, err := config.FindConfigsWithGitignore(path)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
