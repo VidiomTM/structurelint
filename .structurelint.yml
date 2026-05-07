@@ -77,13 +77,7 @@ rules:
       - "internal/ptest/**"
       - "fuzz/**"
 
-  property-enforcement:
-    detect_cycles: true
-    max_dependencies_per_file: 15
-    max_dependency_depth: 5
-    forbidden_patterns:
-      - "internal/rules/** -> cmd/**"
-      - "internal/walker/** -> internal/rules/**"
+  disallow-import-cycles: true
 
 layers:
   - name: cmd

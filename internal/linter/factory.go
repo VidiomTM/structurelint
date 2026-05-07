@@ -59,6 +59,7 @@ func (f *RuleFactory) checkBreakingChanges() error {
 		"spec-adr-enforcement":      "Replace with file-existence + naming-convention.",
 		"file-content":              "Template enforcement is out of scope. Use copier / cookiecutter.",
 		"disallow-unused-exports":   "Cannot be done correctly without per-language symbol resolution. Use ts-prune / knip / ruff F401 / deadcode.",
+		"property-enforcement":      "Replaced by 'disallow-import-cycles' (cycle detection only). max_dependencies_per_file / max_dependency_depth dropped — arbitrary metrics. forbidden_patterns is covered by 'path-based-layers' forbiddenPaths.",
 	}
 	for ruleName, advice := range removed {
 		if _, ok := f.config.Rules[ruleName]; ok {
@@ -117,9 +118,6 @@ func (f *RuleFactory) createGraphDependentRules() []rules.Rule {
 	if rule := f.createOrphanedFilesRule(); rule != nil {
 		rulesList = append(rulesList, rule)
 	}
-	if rule := f.createPropertyEnforcementRule(); rule != nil {
-		rulesList = append(rulesList, rule)
-	}
 	return rulesList
 }
 
@@ -152,24 +150,6 @@ func (f *RuleFactory) createOrphanedFilesRule() rules.Rule {
 		rule = rule.WithEntryPointPatterns(entryPointPatterns)
 	}
 	return rule
-}
-
-func (f *RuleFactory) createPropertyEnforcementRule() rules.Rule {
-	config, ok := f.config.Rules["property-enforcement"]
-	if !ok || !f.isRuleEnabled("property-enforcement") {
-		return nil
-	}
-	configMap, ok := config.(map[string]interface{})
-	if !ok {
-		return nil
-	}
-	enforcementConfig := rulesgraph.PropertyEnforcementConfig{
-		MaxDependenciesPerFile: f.getIntFromMap(configMap, "max_dependencies_per_file"),
-		MaxDependencyDepth:     f.getIntFromMap(configMap, "max_dependency_depth"),
-		DetectCycles:           f.getBoolFromMap(configMap, "detect_cycles"),
-		ForbiddenPatterns:      f.getStringSliceFromMap(configMap, "forbidden_patterns"),
-	}
-	return rulesgraph.NewPropertyEnforcementRule(f.importGraph, enforcementConfig)
 }
 
 func (f *RuleFactory) createPathBasedLayerRules() []rules.Rule {

@@ -14,7 +14,7 @@ type RuleConfigs struct {
 	TestLocation           *TestLocationConfig           `yaml:"test-location,omitempty"`
 	EnforceLayerBoundaries *EnforceLayerBoundariesConfig `yaml:"enforce-layer-boundaries,omitempty"`
 	DisallowOrphanedFiles  *DisallowOrphanedFilesConfig  `yaml:"disallow-orphaned-files,omitempty"`
-	PropertyEnforcement    *PropertyEnforcementConfig    `yaml:"property-enforcement,omitempty"`
+	DisallowImportCycles   *DisallowImportCyclesConfig   `yaml:"disallow-import-cycles,omitempty"`
 	PathBasedLayers        *PathBasedLayersConfig        `yaml:"path-based-layers,omitempty"`
 }
 
@@ -74,13 +74,9 @@ type DisallowOrphanedFilesConfig struct {
 	EntryPointPatterns []string `yaml:"entry-point-patterns,omitempty"`
 }
 
-// PropertyEnforcementConfig configures the property-enforcement rule.
-type PropertyEnforcementConfig struct {
-	MaxDependenciesPerFile int      `yaml:"max_dependencies_per_file,omitempty"`
-	MaxDependencyDepth     int      `yaml:"max_dependency_depth,omitempty"`
-	DetectCycles           bool     `yaml:"detect_cycles,omitempty"`
-	ForbiddenPatterns      []string `yaml:"forbidden_patterns,omitempty"`
-}
+// DisallowImportCyclesConfig configures the disallow-import-cycles rule.
+// An empty struct means the rule only needs to be enabled (no parameters).
+type DisallowImportCyclesConfig struct{}
 
 // PathLayerConfig represents a single layer in the path-based-layers rule.
 type PathLayerConfig struct {

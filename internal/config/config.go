@@ -454,8 +454,8 @@ func (c *Config) TypedRules() *RuleConfigs {
 	if v, ok := GetRuleConfig[*DisallowOrphanedFilesConfig](c, "disallow-orphaned-files"); ok {
 		result.DisallowOrphanedFiles = v
 	}
-	if v, ok := GetRuleConfig[*PropertyEnforcementConfig](c, "property-enforcement"); ok {
-		result.PropertyEnforcement = v
+	if v, ok := GetRuleConfig[*DisallowImportCyclesConfig](c, "disallow-import-cycles"); ok {
+		result.DisallowImportCycles = v
 	}
 	if v, ok := GetRuleConfig[*PathBasedLayersConfig](c, "path-based-layers"); ok {
 		result.PathBasedLayers = v

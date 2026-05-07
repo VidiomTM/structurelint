@@ -42,8 +42,8 @@ func (l *Linter) Lint(path string) ([]Violation, error) {
 	needsGraph := len(l.config.Layers) > 0 ||
 		l.isRuleEnabled("enforce-layer-boundaries") ||
 		l.isRuleEnabled("disallow-orphaned-files") ||
-		l.isRuleEnabled("path-based-layers") ||
-		l.isRuleEnabled("property-enforcement")
+		l.isRuleEnabled("disallow-import-cycles") ||
+		l.isRuleEnabled("path-based-layers")
 
 	if needsGraph {
 		builder := graph.NewBuilder(path, l.config.Layers)
