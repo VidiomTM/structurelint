@@ -91,6 +91,8 @@ func runLinterWithArgs(args []string) error {
 	helpFlag := fs.Bool("help", false, "Show help message")
 	helpFlagShort := fs.Bool("h", false, "Show help message (shorthand)")
 	initFlag := fs.Bool("init", false, "Initialize configuration")
+	presetFlag := fs.String("preset", "", "Preset for --init (e.g. sveltekit, python-monorepo, go-stdlayout)")
+	listPresetsFlag := fs.Bool("list-presets", false, "List available --init presets and exit")
 
 	// Parse flags
 	if err := fs.Parse(args); err != nil {
@@ -115,9 +117,16 @@ func runLinterWithArgs(args []string) error {
 		return nil
 	}
 
+	if *listPresetsFlag {
+		for _, name := range init_pkg.ListPresets() {
+			fmt.Println(name)
+		}
+		return nil
+	}
+
 	// Handle init flag
 	if *initFlag {
-		return runInit(path)
+		return runInit(path, *presetFlag)
 	}
 
 	return executeLinter(path, *formatFlag)
@@ -167,38 +176,47 @@ func executeLinter(path, format string) error {
 	return nil
 }
 
-func runInit(path string) error {
+func runInit(path, preset string) error {
+	configPath := filepath.Join(path, ".structurelint.yml")
 
-	fmt.Println("Analyzing project structure...")
-
-	// Detect project
-	info, err := init_pkg.DetectProject(path)
-	if err != nil {
-		return fmt.Errorf("failed to analyze project: %w", err)
+	if preset == "" {
+		if detected := init_pkg.DetectPreset(path); detected != "" {
+			fmt.Printf("Detected preset: %s (override with --preset=<name>)\n", detected)
+			preset = detected
+		}
 	}
 
-	// Print summary
-	fmt.Println()
-	fmt.Print(init_pkg.GenerateSummary(info))
-	fmt.Println()
+	var config string
+	if preset != "" {
+		c, err := init_pkg.PresetConfig(preset)
+		if err != nil {
+			return err
+		}
+		config = c
+		fmt.Printf("Using preset: %s\n", preset)
+	} else {
+		fmt.Println("Analyzing project structure...")
+		info, err := init_pkg.DetectProject(path)
+		if err != nil {
+			return fmt.Errorf("failed to analyze project: %w", err)
+		}
+		fmt.Println()
+		fmt.Print(init_pkg.GenerateSummary(info))
+		fmt.Println()
+		config = init_pkg.GenerateConfig(info)
+	}
 
-	// Check if config already exists
-	configPath := filepath.Join(path, ".structurelint.yml")
 	if _, err := os.Stat(configPath); err == nil {
 		fmt.Printf("⚠ Warning: %s already exists\n", configPath)
 		fmt.Print("Overwrite? [y/N]: ")
 		var response string
-		_, _ = fmt.Scanln(&response) // Ignore scan errors, default to "no"
+		_, _ = fmt.Scanln(&response)
 		if response != "y" && response != "Y" {
 			fmt.Println("Aborted. No changes made.")
 			return nil
 		}
 	}
 
-	// Generate config
-	config := init_pkg.GenerateConfig(info)
-
-	// Write config
 	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
 	}
@@ -238,6 +256,9 @@ Options:
   -v, --version                Show version information
   -h, --help                   Show help message
       --init                   Initialize configuration for your project
+      --preset <name>          Use a known-shape preset for --init
+                                 (sveltekit, nextjs-app-router, go-stdlayout, python-monorepo)
+      --list-presets           List available --init presets and exit
       --format <format>        Output format: text, json, junit (default: text)
 
 Configuration:
@@ -246,8 +267,10 @@ Configuration:
 
 Examples:
   structurelint                     Lint current directory
-  structurelint --init              Generate config based on current project
-  structurelint --format json .     Output violations as JSON
+  structurelint --init                            Generate config based on current project
+  structurelint --init --preset sveltekit         Use SvelteKit preset directly
+  structurelint --list-presets                    List available presets
+  structurelint --format json .                   Output violations as JSON
   structurelint --format junit ./src  Output violations as JUnit XML
   structurelint /path/to/project    Lint specific directory
 
@@ -264,6 +287,12 @@ Initialization:
 
   It then generates an appropriate .structurelint.yml configuration
   with smart defaults based on detected patterns.
+
+  --preset selects a hand-tuned configuration for a known project shape
+  (SvelteKit, Next.js App Router, Go standard layout, Python monorepo).
+  --init also auto-detects these presets via marker files (svelte.config.js,
+  next.config.*, go.mod + cmd/+ internal/, pyproject.toml + apps/+ packages/)
+  and asks before overwriting an existing config.
 
 Documentation:
   https://github.com/Jonathangadeaharder/structurelint`)
