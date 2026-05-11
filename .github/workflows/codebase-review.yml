@@ -5,7 +5,7 @@ on:
 
 jobs:
   review:
-    runs-on: self-hosted
+    runs-on: [self-hosted, macOS]
     permissions:
       contents: write
       pull-requests: write
