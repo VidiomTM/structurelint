@@ -28,9 +28,9 @@ func TestProperty_ParseFile_NeverPanics(t *testing.T) {
 		ext := rapid.SampledFrom([]string{".ts", ".tsx", ".js", ".jsx", ".go", ".py", ".java", ".cpp", ".cs"}).Draw(t, "ext")
 
 		tmpDir := tempDir(t)
-		defer os.RemoveAll(tmpDir)
+		defer func() { _ = os.RemoveAll(tmpDir) }()
 		fpath := filepath.Join(tmpDir, "test"+ext)
-		os.WriteFile(fpath, []byte(content), 0644)
+		_ = os.WriteFile(fpath, []byte(content), 0644)
 
 		p := parser.New(tmpDir)
 		func() {
@@ -39,7 +39,7 @@ func TestProperty_ParseFile_NeverPanics(t *testing.T) {
 					t.Fatalf("ParseFile panicked: %v", r)
 				}
 			}()
-			p.ParseFile(fpath)
+			_, _ = p.ParseFile(fpath)
 		}()
 	})
 }
@@ -50,9 +50,9 @@ func TestProperty_ParseExports_NeverPanics(t *testing.T) {
 		ext := rapid.SampledFrom([]string{".ts", ".tsx", ".js", ".jsx", ".go", ".py", ".java", ".cpp", ".h", ".cs"}).Draw(t, "ext")
 
 		tmpDir := tempDir(t)
-		defer os.RemoveAll(tmpDir)
+		defer func() { _ = os.RemoveAll(tmpDir) }()
 		fpath := filepath.Join(tmpDir, "test"+ext)
-		os.WriteFile(fpath, []byte(content), 0644)
+		_ = os.WriteFile(fpath, []byte(content), 0644)
 
 		p := parser.New(tmpDir)
 		func() {
@@ -61,7 +61,7 @@ func TestProperty_ParseExports_NeverPanics(t *testing.T) {
 					t.Fatalf("ParseExports panicked: %v", r)
 				}
 			}()
-			p.ParseExports(fpath)
+			_, _ = p.ParseExports(fpath)
 		}()
 	})
 }
@@ -89,10 +89,10 @@ func TestProperty_ParseGo_ImportPathPreserved(t *testing.T) {
 		modPath := rapid.StringMatching(`^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`).Draw(t, "modPath")
 
 		tmpDir := tempDir(t)
-		defer os.RemoveAll(tmpDir)
+		defer func() { _ = os.RemoveAll(tmpDir) }()
 		content := "package main\n\nimport (\n\t\"" + modPath + "\"\n)\n"
 		fpath := filepath.Join(tmpDir, "test.go")
-		os.WriteFile(fpath, []byte(content), 0644)
+		_ = os.WriteFile(fpath, []byte(content), 0644)
 
 		p := parser.New(tmpDir)
 		imports, err := p.ParseFile(fpath)
@@ -120,10 +120,10 @@ func TestProperty_ParseTS_RelativeFlag(t *testing.T) {
 		).Draw(t, "relPath")
 
 		tmpDir := tempDir(t)
-		defer os.RemoveAll(tmpDir)
+		defer func() { _ = os.RemoveAll(tmpDir) }()
 		content := "import { x } from '" + relPath + "';\n"
 		fpath := filepath.Join(tmpDir, "test.ts")
-		os.WriteFile(fpath, []byte(content), 0644)
+		_ = os.WriteFile(fpath, []byte(content), 0644)
 
 		p := parser.New(tmpDir)
 		imports, err := p.ParseFile(fpath)
@@ -143,9 +143,9 @@ func TestProperty_Load_NeverPanics(t *testing.T) {
 		content := rapid.String().Draw(t, "content")
 
 		tmpDir := tempDir(t)
-		defer os.RemoveAll(tmpDir)
+		defer func() { _ = os.RemoveAll(tmpDir) }()
 		fpath := filepath.Join(tmpDir, ".structurelint.yml")
-		os.WriteFile(fpath, []byte(content), 0644)
+		_ = os.WriteFile(fpath, []byte(content), 0644)
 
 		func() {
 			defer func() {
@@ -153,7 +153,7 @@ func TestProperty_Load_NeverPanics(t *testing.T) {
 					t.Fatalf("Load panicked: %v", r)
 				}
 			}()
-			config.Load(fpath)
+			_, _ = config.Load(fpath)
 		}()
 	})
 }

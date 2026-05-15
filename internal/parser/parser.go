@@ -87,7 +87,7 @@ func (p *Parser) parseTypeScriptJavaScript(filePath string) ([]Import, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var imports []Import
 	scanner := bufio.NewScanner(file)
@@ -134,7 +134,7 @@ func (p *Parser) parseGo(filePath string) ([]Import, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var imports []Import
 	scanner := bufio.NewScanner(file)
@@ -196,7 +196,7 @@ func (p *Parser) parsePython(filePath string) ([]Import, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var imports []Import
 	scanner := bufio.NewScanner(file)
@@ -236,7 +236,7 @@ func (p *Parser) parseJava(filePath string) ([]Import, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var imports []Import
 	scanner := bufio.NewScanner(file)
@@ -287,7 +287,7 @@ func (p *Parser) parseJavaExports(filePath string) ([]Export, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var exports []Export
 	scanner := bufio.NewScanner(file)
@@ -328,7 +328,7 @@ func (p *Parser) parseCpp(filePath string) ([]Import, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var imports []Import
 	scanner := bufio.NewScanner(file)
@@ -380,7 +380,7 @@ func (p *Parser) parseCppExports(filePath string) ([]Export, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var exports []Export
 	scanner := bufio.NewScanner(file)
@@ -458,7 +458,7 @@ func (p *Parser) parseCSharp(filePath string) ([]Import, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var imports []Import
 	scanner := bufio.NewScanner(file)
@@ -532,7 +532,7 @@ func (p *Parser) parseCSharpExports(filePath string) ([]Export, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var exports []Export
 	scanner := bufio.NewScanner(file)

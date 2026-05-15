@@ -23,7 +23,7 @@ func FuzzJSONOutput(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, input string) {
 		var violations []rules.Violation
-		json.Unmarshal([]byte(input), &violations)
+		_ = json.Unmarshal([]byte(input), &violations)
 
 		if violations == nil {
 			violations = []rules.Violation{}

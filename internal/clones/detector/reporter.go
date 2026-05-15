@@ -38,24 +38,24 @@ func (r *Reporter) reportConsole(clones []*types.Clone) string {
 
 	var output strings.Builder
 
-	output.WriteString(fmt.Sprintf("\n🔍 Found %d code clone pairs:\n", len(clones)))
+	fmt.Fprintf(&output, "\n🔍 Found %d code clone pairs:\n", len(clones))
 	output.WriteString(strings.Repeat("=", 80) + "\n\n")
 
 	for i, clone := range clones {
-		output.WriteString(fmt.Sprintf("Clone Pair #%d (%d tokens, ~%d lines) [%s]\n",
-			i+1, clone.TokenCount, clone.LineCount, clone.Type.String()))
+		fmt.Fprintf(&output, "Clone Pair #%d (%d tokens, ~%d lines) [%s]\n",
+			i+1, clone.TokenCount, clone.LineCount, clone.Type.String())
 		output.WriteString(strings.Repeat("-", 80) + "\n")
 
 		for j, loc := range clone.Locations {
-			output.WriteString(fmt.Sprintf("  Location %c: %s:%d-%d\n",
-				'A'+j, loc.FilePath, loc.StartLine, loc.EndLine))
+			fmt.Fprintf(&output, "  Location %c: %s:%d-%d\n",
+				'A'+j, loc.FilePath, loc.StartLine, loc.EndLine)
 		}
 
-		output.WriteString(fmt.Sprintf("  Similarity: %.1f%%\n", clone.Similarity*100))
+		fmt.Fprintf(&output, "  Similarity: %.1f%%\n", clone.Similarity*100)
 		output.WriteString("\n")
 	}
 
-	output.WriteString(fmt.Sprintf("Total: %d clone pairs detected\n", len(clones)))
+	fmt.Fprintf(&output, "Total: %d clone pairs detected\n", len(clones))
 
 	return output.String()
 }

@@ -164,7 +164,7 @@ func (c *HTTPPluginClient) DetectClones(ctx context.Context, req *SemanticCloneR
 		c.available = false // Mark as unavailable on error
 		return nil, fmt.Errorf("plugin request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Check status code
 	if resp.StatusCode != http.StatusOK {
@@ -197,7 +197,7 @@ func (c *HTTPPluginClient) Health(ctx context.Context) (*HealthResponse, error) 
 	if err != nil {
 		return nil, fmt.Errorf("health check failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return &HealthResponse{Status: "unhealthy"}, nil

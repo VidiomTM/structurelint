@@ -15,7 +15,7 @@ func arbDirTree(t *rapid.T) (string, int, int) {
 	if err != nil {
 		t.Fatalf("create temp dir: %v", err)
 	}
-	t.Cleanup(func() { os.RemoveAll(tmpDir) })
+	t.Cleanup(func() { _ = os.RemoveAll(tmpDir) })
 
 	numDirs := rapid.IntRange(0, 10).Draw(t, "numDirs")
 	numFiles := rapid.IntRange(0, 10).Draw(t, "numFiles")

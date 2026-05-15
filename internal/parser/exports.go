@@ -14,17 +14,11 @@ func (p *Parser) parseTypeScriptJavaScriptExports(filePath string) ([]Export, er
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var exports []Export
 	scanner := bufio.NewScanner(file)
 
-	// Regex patterns for exports
-	// export default foo
-	// export { foo, bar }
-	// export const foo = ...
-	// export function foo() {}
-	// export class Foo {}
 	exportDefaultRegex := regexp.MustCompile(`^\s*export\s+default\s+`)
 	exportNamedRegex := regexp.MustCompile(`^\s*export\s+\{\s*([^}]+)\s*\}`)
 	exportDeclarationRegex := regexp.MustCompile(`^\s*export\s+(?:const|let|var|function|class|interface|type|enum)\s+(\w+)`)
@@ -83,7 +77,7 @@ func (p *Parser) parseGoExports(filePath string) ([]Export, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var exports []Export
 	scanner := bufio.NewScanner(file)
@@ -127,7 +121,7 @@ func (p *Parser) parsePythonExports(filePath string) ([]Export, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	var exports []Export
 	scanner := bufio.NewScanner(file)

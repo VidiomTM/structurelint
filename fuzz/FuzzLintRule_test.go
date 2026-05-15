@@ -11,16 +11,6 @@ import (
 	"github.com/Jonathangadeaharder/structurelint/internal/walker"
 )
 
-type dummyRule struct {
-	name string
-}
-
-func (r *dummyRule) Name() string { return r.name }
-
-func (r *dummyRule) Check(files []walker.FileInfo, dirs map[string]*walker.DirInfo) []rules.Violation {
-	return nil
-}
-
 func FuzzRuleViolationFormat(f *testing.F) {
 	f.Add("test-rule", "/some/path.go", "something went wrong", "PascalCase", "camelCase")
 	f.Add("", "", "", "", "")

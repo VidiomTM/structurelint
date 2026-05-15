@@ -192,15 +192,12 @@ func checkPatternParts(path string, parts []string) bool {
 }
 
 func checkPatternPart(path, part string, index, totalParts int) bool {
-	switch {
-	case index == 0:
-		// First part: check if path starts with it
+	switch index {
+	case 0:
 		return strings.HasPrefix(path, part) || strings.Contains(path, "/"+part+"/") || strings.Contains(path, "/"+part)
-	case index == totalParts-1:
-		// Last part: check if path ends with it or contains it
+	case totalParts - 1:
 		return strings.HasSuffix(path, part) || strings.Contains(path, "/"+part+"/") || strings.Contains(path, "/"+part)
 	default:
-		// Middle parts: check if path contains it
 		return strings.Contains(path, "/"+part+"/") || strings.Contains(path, "/"+part)
 	}
 }

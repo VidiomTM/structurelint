@@ -107,8 +107,8 @@ func TestAnalyzeFileByPath_UnsupportedLanguage(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
-	tmpFile.Close()
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
+	_ = tmpFile.Close()
 
 	// Act
 	_, err = analyzer.AnalyzeFileByPath(tmpFile.Name())
@@ -132,7 +132,7 @@ func TestAnalyzePythonFile_ValidPython(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
 
 	pythonCode := `def simple_function(x):
     return x + 1
@@ -146,7 +146,7 @@ def complex_function(x):
 	if _, err := tmpFile.WriteString(pythonCode); err != nil {
 		t.Fatalf("Failed to write to temp file: %v", err)
 	}
-	tmpFile.Close()
+	_ = tmpFile.Close()
 
 	// Act
 	metrics, err := analyzer.AnalyzeFileByPath(tmpFile.Name())
@@ -178,7 +178,7 @@ func TestAnalyzeJavaScriptFile_ValidJS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
 
 	jsCode := `function simpleFunction(x) {
     return x + 1;
@@ -196,7 +196,7 @@ function complexFunction(x) {
 	if _, err := tmpFile.WriteString(jsCode); err != nil {
 		t.Fatalf("Failed to write to temp file: %v", err)
 	}
-	tmpFile.Close()
+	_ = tmpFile.Close()
 
 	// Act
 	metrics, err := analyzer.AnalyzeFileByPath(tmpFile.Name())
@@ -228,7 +228,7 @@ func TestAnalyzeHalsteadMetrics(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
 
 	pythonCode := `def add(a, b):
     return a + b
@@ -236,7 +236,7 @@ func TestAnalyzeHalsteadMetrics(t *testing.T) {
 	if _, err := tmpFile.WriteString(pythonCode); err != nil {
 		t.Fatalf("Failed to write to temp file: %v", err)
 	}
-	tmpFile.Close()
+	_ = tmpFile.Close()
 
 	// Act
 	metrics, err := analyzer.AnalyzeFileByPath(tmpFile.Name())

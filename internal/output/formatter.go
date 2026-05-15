@@ -28,7 +28,7 @@ func (f *TextFormatter) Format(violations []rules.Violation) (string, error) {
 
 	var sb strings.Builder
 	for _, v := range violations {
-		sb.WriteString(fmt.Sprintf("%s: %s\n", v.Path, v.Message))
+		fmt.Fprintf(&sb, "%s: %s\n", v.Path, v.Message)
 	}
 	return sb.String(), nil
 }

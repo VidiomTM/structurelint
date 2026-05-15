@@ -150,7 +150,7 @@ func TestLint_BasicRules(t *testing.T) {
 	// Create a temporary directory structure
 	tmpDir, err := os.MkdirTemp("", "linter-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create a simple project structure
 	srcDir := filepath.Join(tmpDir, "src")
@@ -198,7 +198,7 @@ func TestLint_NoConfig(t *testing.T) {
 	// Create a temporary directory without config
 	tmpDir, err := os.MkdirTemp("", "linter-test-noconfig")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create a simple file
 	testFile := filepath.Join(tmpDir, "test.ts")
@@ -218,7 +218,7 @@ func TestLint_WithLayers(t *testing.T) {
 	// Create a temporary directory structure
 	tmpDir, err := os.MkdirTemp("", "linter-layers-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create directory structure
 	domainDir := filepath.Join(tmpDir, "src", "domain")

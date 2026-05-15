@@ -35,7 +35,7 @@ func TestBuild_EmptyFileList(t *testing.T) {
 func TestBuild_WithLayers(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "graph-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	domainDir := filepath.Join(tmpDir, "src", "domain")
 	require.NoError(t, os.MkdirAll(domainDir, 0755))
@@ -232,7 +232,7 @@ func TestFindLayerByName(t *testing.T) {
 func TestBuild_IncomingReferences(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "graph-ref-test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	srcDir := filepath.Join(tmpDir, "src")
 	require.NoError(t, os.MkdirAll(srcDir, 0755))

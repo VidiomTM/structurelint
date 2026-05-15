@@ -1,4 +1,4 @@
-
+version: "2"
 
 linters:
   enable:
@@ -9,12 +9,11 @@ linters:
     - unused
     - gocyclo
     - gocognit
-
-linters-settings:
-  gocyclo:
-    min-complexity: 26
-  gocognit:
-    min-complexity: 85
+  settings:
+    gocyclo:
+      min-complexity: 26
+    gocognit:
+      min-complexity: 85
 
 run:
   tests: true

@@ -27,7 +27,7 @@ func FuzzLintRule(f *testing.F) {
 		violations := []rules.Violation{v}
 
 		textF := &output.TextFormatter{}
-		textF.Format(violations)
+		_, _ = textF.Format(violations)
 
 		jsonF := &output.JSONFormatter{Version: "fuzz"}
 		result, err := jsonF.Format(violations)

@@ -143,25 +143,6 @@ func arbRule(t *rapid.T) rules.Rule {
 	}
 }
 
-func arbPathBasedLayerRule(t *rapid.T) rules.Rule {
-	layerCount := rapid.IntRange(2, 4).Draw(t, "layerCount")
-	layers := make([]rulesgraph.PathLayer, layerCount)
-	for i := 0; i < layerCount; i++ {
-		layers[i] = rulesgraph.PathLayer{
-			Name:     fmt.Sprintf("layer_%d", i),
-			Patterns: []string{fmt.Sprintf("layer%d/**", i)},
-		}
-		if i > 0 {
-			deps := make([]string, i)
-			for j := 0; j < i; j++ {
-				deps[j] = fmt.Sprintf("layer_%d", j)
-			}
-			layers[i].CanDependOn = deps
-		}
-	}
-	return rulesgraph.NewPathBasedLayerRule(layers)
-}
-
 func violationsKey(v []rules.Violation) string {
 	paths := make([]string, len(v))
 	for i, vi := range v {

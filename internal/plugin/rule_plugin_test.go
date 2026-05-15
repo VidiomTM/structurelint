@@ -55,8 +55,8 @@ func TestProcessPlugin_Check(t *testing.T) {
 	// we can set the env var for the current process, but that's racy in parallel tests.
 	// Ideally ProcessPlugin should support custom Env.
 	// For now, we'll assume sequential execution or just set it.
-	os.Setenv("GO_WANT_HELPER_PROCESS", "1")
-	defer os.Unsetenv("GO_WANT_HELPER_PROCESS")
+	_ = os.Setenv("GO_WANT_HELPER_PROCESS", "1")
+	defer func() { _ = os.Unsetenv("GO_WANT_HELPER_PROCESS") }()
 
 	// Test success
 	files := []walker.FileInfo{{AbsPath: "test.go"}}
