@@ -198,7 +198,7 @@ func checkPatternPart(path, part string, index, totalParts int) bool {
 	case totalParts - 1:
 		return strings.HasSuffix(path, part) || strings.Contains(path, "/"+part+"/") || strings.Contains(path, "/"+part)
 	default:
-		return strings.Contains(path, "/"+part+"/") || strings.Contains(path, "/"+part)
+		return strings.HasPrefix(path, part+"/") || strings.Contains(path, "/"+part+"/") || strings.Contains(path, "/"+part)
 	}
 }
 

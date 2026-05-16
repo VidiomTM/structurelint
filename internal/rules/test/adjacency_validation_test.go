@@ -171,3 +171,69 @@ func TestTestAdjacencyRule_Name(t *testing.T) {
 		t.Errorf("Name() = %v, want test-adjacency", got)
 	}
 }
+
+func TestTestAdjacencyRule_SeparatePattern_Violation(t *testing.T) {
+	rule := NewTestAdjacencyRule("separate", "tests", []string{"**/*.go"}, nil)
+	files := []walker.FileInfo{
+		{Path: "service.go", ParentPath: "", IsDir: false},
+	}
+	v := rule.Check(files, nil)
+	if len(v) != 1 {
+		t.Fatalf("expected 1 violation, got %d", len(v))
+	}
+	if v[0].Path != "service.go" {
+		t.Errorf("violation path = %s, want service.go", v[0].Path)
+	}
+}
+
+func TestTestAdjacencyRule_SeparatePattern_NoViolation(t *testing.T) {
+	rule := NewTestAdjacencyRule("separate", "tests", []string{"**/*.go"}, nil)
+	files := []walker.FileInfo{
+		{Path: "service.go", ParentPath: "", IsDir: false},
+		{Path: "tests/service_test.go", ParentPath: "tests", IsDir: false},
+	}
+	v := rule.Check(files, nil)
+	if len(v) != 0 {
+		t.Errorf("expected 0 violations, got %d: %v", len(v), v)
+	}
+}
+
+func TestTestAdjacencyRule_SeparatePattern_ExemptedFile(t *testing.T) {
+	rule := NewTestAdjacencyRule("separate", "tests", []string{"**/*.go"}, []string{"cmd/**"})
+	files := []walker.FileInfo{
+		{Path: "cmd/main.go", ParentPath: "cmd", IsDir: false},
+	}
+	v := rule.Check(files, nil)
+	if len(v) != 0 {
+		t.Errorf("expected 0 violations for exempted file, got %d", len(v))
+	}
+}
+
+func TestTestAdjacencyRule_SeparatePattern_EmptyFilePatterns(t *testing.T) {
+	rule := NewTestAdjacencyRule("separate", "tests", []string{}, nil)
+	files := []walker.FileInfo{
+		{Path: "service.go", ParentPath: "", IsDir: false},
+	}
+	v := rule.Check(files, nil)
+	if len(v) != 0 {
+		t.Errorf("expected 0 violations with empty patterns, got %d", len(v))
+	}
+}
+
+func TestTestAdjacencyRule_getExpectedTestPath(t *testing.T) {
+	rule := NewTestAdjacencyRule("separate", "tests", nil, nil)
+	tests := []struct {
+		source string
+		want   string
+	}{
+		{"service.go", "tests/service_test.go"},
+		{"src/service.go", "tests/src/service_test.go"},
+		{"sub/service.go", "tests/sub/service_test.go"},
+	}
+	for _, c := range tests {
+		got := rule.getExpectedTestPath(c.source)
+		if got != c.want {
+			t.Errorf("getExpectedTestPath(%q) = %q, want %q", c.source, got, c.want)
+		}
+	}
+}

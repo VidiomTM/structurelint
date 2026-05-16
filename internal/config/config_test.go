@@ -243,3 +243,373 @@ func TestFindConfigsNoConfigFound(t *testing.T) {
 	assert.Equal(t, 1, len(configs))
 	assert.NotNil(t, configs[0].Rules)
 }
+
+func TestLoadWithGitignore(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, ".structurelint.yml")
+
+	content := `root: true
+rules:
+  max-depth:
+    max: 5
+`
+	require.NoError(t, os.WriteFile(configFile, []byte(content), 0644))
+
+	gitignoreContent := "node_modules\n*.log\n"
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, ".gitignore"), []byte(gitignoreContent), 0644))
+
+	config, err := LoadWithGitignore(configFile, tmpDir)
+
+	require.NoError(t, err)
+	assert.True(t, config.Root)
+	assert.Contains(t, config.Exclude, "**/node_modules")
+}
+
+func TestLoadWithGitignoreDisabled(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, ".structurelint.yml")
+
+	content := `root: true
+autoLoadGitignore: false
+rules:
+  max-depth:
+    max: 5
+`
+	require.NoError(t, os.WriteFile(configFile, []byte(content), 0644))
+
+	gitignoreContent := "node_modules\n"
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, ".gitignore"), []byte(gitignoreContent), 0644))
+
+	config, err := LoadWithGitignore(configFile, tmpDir)
+
+	require.NoError(t, err)
+	assert.Empty(t, config.Exclude)
+}
+
+func TestLoadWithGitignoreLoadError(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, ".structurelint.yml")
+
+	content := `root: true
+rules:
+  max-depth:
+    max: 5
+`
+	require.NoError(t, os.WriteFile(configFile, []byte(content), 0644))
+
+	// Don't create .gitignore but don't fail — ApplyGitignore handles missing gracefully
+	config, err := LoadWithGitignore(configFile, tmpDir)
+
+	require.NoError(t, err)
+	assert.True(t, config.Root)
+}
+
+func TestApplyGitignore(t *testing.T) {
+	tmpDir := t.TempDir()
+	gitignoreContent := "node_modules\n*.log\n"
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, ".gitignore"), []byte(gitignoreContent), 0644))
+
+	cfg := &Config{
+		Rules:    make(map[string]interface{}),
+		Exclude:  []string{"dist/**"},
+	}
+
+	result, err := ApplyGitignore(cfg, tmpDir)
+
+	require.NoError(t, err)
+	assert.Contains(t, result.Exclude, "dist/**")
+	assert.Contains(t, result.Exclude, "**/node_modules")
+}
+
+func TestApplyGitignoreAutoLoadDisabled(t *testing.T) {
+	autoLoadFalse := false
+	cfg := &Config{
+		Rules:             make(map[string]interface{}),
+		AutoLoadGitignore: &autoLoadFalse,
+	}
+
+	result, err := ApplyGitignore(cfg, "/tmp")
+
+	require.NoError(t, err)
+	assert.Empty(t, result.Exclude)
+}
+
+func TestLoadWithExtendsString(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	baseConfig := filepath.Join(tmpDir, "base.yml")
+	require.NoError(t, os.WriteFile(baseConfig, []byte("rules:\n  max-depth:\n    max: 3\n"), 0644))
+
+	mainConfig := filepath.Join(tmpDir, ".structurelint.yml")
+	content := "extends: base.yml\nrules:\n  max-files:\n    max: 10\n"
+	require.NoError(t, os.WriteFile(mainConfig, []byte(content), 0644))
+
+	config, err := Load(mainConfig)
+
+	require.NoError(t, err)
+	assert.Equal(t, 3, config.Rules["max-depth"].(map[string]interface{})["max"])
+	assert.Equal(t, 10, config.Rules["max-files"].(map[string]interface{})["max"])
+	assert.Nil(t, config.Extends)
+}
+
+func TestLoadWithExtendsArray(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	base1 := filepath.Join(tmpDir, "base1.yml")
+	require.NoError(t, os.WriteFile(base1, []byte("rules:\n  max-depth:\n    max: 5\n"), 0644))
+
+	base2 := filepath.Join(tmpDir, "base2.yml")
+	require.NoError(t, os.WriteFile(base2, []byte("rules:\n  naming-convention:\n    \"*.ts\": \"camelCase\"\n"), 0644))
+
+	mainConfig := filepath.Join(tmpDir, ".structurelint.yml")
+	content := "extends:\n  - base1.yml\n  - base2.yml\nrules:\n  max-files:\n    max: 10\n"
+	require.NoError(t, os.WriteFile(mainConfig, []byte(content), 0644))
+
+	config, err := Load(mainConfig)
+
+	require.NoError(t, err)
+	assert.NotNil(t, config.Rules["max-depth"])
+	assert.NotNil(t, config.Rules["naming-convention"])
+	assert.Equal(t, 10, config.Rules["max-files"].(map[string]interface{})["max"])
+}
+
+func TestLoadCircularExtends(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfgA := filepath.Join(tmpDir, "a.yml")
+	cfgB := filepath.Join(tmpDir, "b.yml")
+
+	require.NoError(t, os.WriteFile(cfgA, []byte("extends: b.yml\nrules:\n  max-depth:\n    max: 5\n"), 0644))
+	require.NoError(t, os.WriteFile(cfgB, []byte("extends: a.yml\nrules:\n  max-files:\n    max: 10\n"), 0644))
+
+	_, err := Load(cfgA)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "circular dependency")
+}
+
+func TestLoadWithInvalidExtendsType(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, ".structurelint.yml")
+	content := "extends: 42\nrules:\n  max-depth:\n    max: 5\n"
+	require.NoError(t, os.WriteFile(configFile, []byte(content), 0644))
+
+	_, err := Load(configFile)
+	assert.Error(t, err)
+}
+
+func TestResolveExtendPathAbsolute(t *testing.T) {
+	tmpDir := t.TempDir()
+	extPath := filepath.Join(tmpDir, "ext.yml")
+	require.NoError(t, os.WriteFile(extPath, []byte("rules:\n  max-depth:\n    max: 5\n"), 0644))
+
+	result, err := resolveExtendPath(extPath, "/some/base")
+	require.NoError(t, err)
+	assert.Equal(t, extPath, result)
+}
+
+func TestResolveExtendPathRelative(t *testing.T) {
+	tmpDir := t.TempDir()
+	extPath := filepath.Join(tmpDir, "ext.yml")
+	require.NoError(t, os.WriteFile(extPath, []byte("rules:\n  max-depth:\n    max: 5\n"), 0644))
+
+	result, err := resolveExtendPath("ext.yml", tmpDir)
+	require.NoError(t, err)
+	assert.Equal(t, extPath, result)
+}
+
+func TestResolveExtendPathNotFound(t *testing.T) {
+	_, err := resolveExtendPath("/nonexistent/path.yml", "/tmp")
+	assert.Error(t, err)
+}
+
+func TestFindConfigsWithGitignore(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	configFile := filepath.Join(tmpDir, ".structurelint.yml")
+	require.NoError(t, os.WriteFile(configFile, []byte("root: true\nrules:\n  max-depth:\n    max: 5\n"), 0644))
+
+	gitignoreContent := "node_modules\n"
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, ".gitignore"), []byte(gitignoreContent), 0644))
+
+	configs, found, err := FindConfigsWithGitignore(tmpDir)
+
+	require.NoError(t, err)
+	assert.True(t, found)
+	assert.NotEmpty(t, configs)
+	assert.Contains(t, configs[0].Exclude, "**/node_modules")
+}
+
+func TestFindConfigsWithGitignoreNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	configs, found, err := FindConfigsWithGitignore(tmpDir)
+
+	require.NoError(t, err)
+	assert.False(t, found)
+	assert.NotEmpty(t, configs) // default config
+}
+
+func TestGetRuleConfigInt(t *testing.T) {
+	cfg := &Config{
+		Rules: map[string]interface{}{
+			"max-depth": map[string]interface{}{"max": 5},
+		},
+	}
+
+	type MaxDepth struct {
+		Max int
+	}
+	result, ok := GetRuleConfig[*MaxDepth](cfg, "max-depth")
+
+	assert.True(t, ok)
+	assert.Equal(t, 5, result.Max)
+}
+
+func TestGetRuleConfigNotFound(t *testing.T) {
+	cfg := &Config{
+		Rules: map[string]interface{}{},
+	}
+
+	type MaxDepth struct {
+		Max int
+	}
+	_, ok := GetRuleConfig[*MaxDepth](cfg, "nonexistent")
+	assert.False(t, ok)
+}
+
+func TestGetRuleConfigDisabledByZero(t *testing.T) {
+	cfg := &Config{
+		Rules: map[string]interface{}{
+			"max-depth": 0,
+		},
+	}
+
+	type MaxDepth struct {
+		Max int
+	}
+	_, ok := GetRuleConfig[*MaxDepth](cfg, "max-depth")
+	assert.False(t, ok)
+}
+
+func TestGetRuleConfigDisabledByFalse(t *testing.T) {
+	cfg := &Config{
+		Rules: map[string]interface{}{
+			"max-depth": false,
+		},
+	}
+
+	type MaxDepth struct {
+		Max int
+	}
+	_, ok := GetRuleConfig[*MaxDepth](cfg, "max-depth")
+	assert.False(t, ok)
+}
+
+func TestTypedRules(t *testing.T) {
+	cfg := &Config{
+		Rules: map[string]interface{}{
+			"max-depth":                    map[string]interface{}{"max": 5},
+			"max-files-in-dir":            map[string]interface{}{"max": 100},
+			"max-subdirs":                 map[string]interface{}{"max": 10},
+			"naming-convention":           map[string]interface{}{"*.ts": "camelCase"},
+			"file-existence":              map[string]interface{}{"index.ts": "exists:1"},
+			"regex-match":                 map[string]interface{}{"*.go": "package"},
+			"disallowed-patterns":         []interface{}{"*.exe", "*.dll"},
+			"test-adjacency":              map[string]interface{}{"pattern": "_test.go"},
+			"test-location":               map[string]interface{}{"integration-test-dir": "tests/"},
+			"enforce-layer-boundaries":    map[string]interface{}{},
+			"disallow-orphaned-files":     map[string]interface{}{},
+			"disallow-import-cycles":      map[string]interface{}{},
+			"path-based-layers":           map[string]interface{}{"layers": []interface{}{}},
+		},
+	}
+
+	rules := cfg.TypedRules()
+
+	require.NotNil(t, rules)
+	require.NotNil(t, rules.MaxDepth)
+	assert.Equal(t, 5, rules.MaxDepth.Max)
+	require.NotNil(t, rules.MaxFilesInDir)
+	assert.Equal(t, 100, rules.MaxFilesInDir.Max)
+	require.NotNil(t, rules.MaxSubdirs)
+	assert.Equal(t, 10, rules.MaxSubdirs.Max)
+	assert.Equal(t, "camelCase", rules.NamingConvention["*.ts"])
+	assert.Equal(t, "exists:1", rules.FileExistence["index.ts"])
+	assert.Equal(t, "package", rules.RegexMatch["*.go"])
+	assert.Equal(t, []string{"*.exe", "*.dll"}, []string(rules.DisallowedPatterns))
+	require.NotNil(t, rules.TestAdjacency)
+	assert.Equal(t, "_test.go", rules.TestAdjacency.Pattern)
+	require.NotNil(t, rules.TestLocation)
+	assert.Equal(t, "tests/", rules.TestLocation.IntegrationTestDir)
+	require.NotNil(t, rules.EnforceLayerBoundaries)
+	require.NotNil(t, rules.DisallowOrphanedFiles)
+	require.NotNil(t, rules.DisallowImportCycles)
+	require.NotNil(t, rules.PathBasedLayers)
+}
+
+func TestTypedRulesNilConfig(t *testing.T) {
+	var nilCfg *Config
+	rules := nilCfg.TypedRules()
+	assert.Nil(t, rules)
+}
+
+func TestTypedRulesNoRules(t *testing.T) {
+	cfg := &Config{
+		Rules: map[string]interface{}{},
+	}
+	rules := cfg.TypedRules()
+	assert.Nil(t, rules)
+}
+
+func TestLoadWithExtendsWithYamlSubdir(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	subDir := filepath.Join(tmpDir, "subconfig")
+	require.NoError(t, os.MkdirAll(subDir, 0755))
+
+	subConfig := filepath.Join(subDir, "base.yml")
+	require.NoError(t, os.WriteFile(subConfig, []byte("rules:\n  max-depth:\n    max: 7\n"), 0644))
+
+	mainConfig := filepath.Join(tmpDir, ".structurelint.yml")
+	content := "extends: subconfig/base.yml\nrules:\n  max-files:\n    max: 10\n"
+	require.NoError(t, os.WriteFile(mainConfig, []byte(content), 0644))
+
+	config, err := Load(mainConfig)
+	require.NoError(t, err)
+	assert.Equal(t, 7, config.Rules["max-depth"].(map[string]interface{})["max"])
+}
+
+func TestResolveExtendPathRelativePrefix(t *testing.T) {
+	tmpDir := t.TempDir()
+	extPath := filepath.Join(tmpDir, "ext.yml")
+	require.NoError(t, os.WriteFile(extPath, []byte("rules: {}"), 0644))
+
+	result, err := resolveExtendPath("./ext.yml", tmpDir)
+	require.NoError(t, err)
+	assert.Equal(t, extPath, result)
+}
+
+func TestApplyGitignoreMissingGitignore(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := &Config{
+		Rules:   make(map[string]interface{}),
+		Exclude: []string{"dist/**"},
+	}
+
+	result, err := ApplyGitignore(cfg, tmpDir)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"dist/**"}, result.Exclude)
+}
+
+func TestLoadWithNonExistentConfigInvalidAbsError(t *testing.T) {
+	// Test that reading a file with a read error path goes to failure
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, ".structurelint.yml")
+
+	// Create a directory with the same name to make os.ReadFile fail
+	require.NoError(t, os.Mkdir(configFile, 0644))
+
+	_, err := Load(configFile)
+	assert.Error(t, err)
+}

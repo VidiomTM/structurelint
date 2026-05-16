@@ -206,3 +206,22 @@ func TestNamingConventionRule_Name(t *testing.T) {
 	rule := NewNamingConventionRule(map[string]string{"*.js": "camelCase"})
 	assert.Equal(t, "naming-convention", rule.Name())
 }
+
+func TestIsUpperCase(t *testing.T) {
+	cases := []struct {
+		input string
+		want  bool
+	}{
+		{"ABC", true},
+		{"abc", false},
+		{"Abc", false},
+		{"ABC123", true},
+		{"", true},
+	}
+	for _, c := range cases {
+		got := isUpperCase(c.input)
+		if got != c.want {
+			t.Errorf("isUpperCase(%q) = %v, want %v", c.input, got, c.want)
+		}
+	}
+}

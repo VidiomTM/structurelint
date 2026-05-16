@@ -116,3 +116,62 @@ func TestFileExistenceRule_WhenGettingName(t *testing.T) {
 		t.Errorf("Name() = %v, want file-existence", got)
 	}
 }
+
+func TestValidateFileExistenceConfig_Valid(t *testing.T) {
+	errs := ValidateFileExistenceConfig(map[string]string{"README.md": "exists:1"})
+	if len(errs) != 0 {
+		t.Errorf("expected 0 errors, got %v", errs)
+	}
+}
+
+func TestValidateFileExistenceConfig_ValidRange(t *testing.T) {
+	errs := ValidateFileExistenceConfig(map[string]string{"README.md": "exists:1-5"})
+	if len(errs) != 0 {
+		t.Errorf("expected 0 errors, got %v", errs)
+	}
+}
+
+func TestValidateFileExistenceConfig_InvalidFormat(t *testing.T) {
+	errs := ValidateFileExistenceConfig(map[string]string{"README.md": "optional"})
+	if len(errs) != 1 {
+		t.Fatalf("expected 1 error, got %v", errs)
+	}
+}
+
+func TestValidateFileExistenceConfig_InvalidRange(t *testing.T) {
+	errs := ValidateFileExistenceConfig(map[string]string{"README.md": "exists:1-2-3"})
+	if len(errs) != 1 {
+		t.Fatalf("expected 1 error for invalid range, got %v", errs)
+	}
+}
+
+func TestValidateFileExistenceConfig_InvalidRangeMin(t *testing.T) {
+	errs := ValidateFileExistenceConfig(map[string]string{"README.md": "exists:abc-5"})
+	if len(errs) != 1 {
+		t.Fatalf("expected 1 error for invalid range min, got %v", errs)
+	}
+}
+
+func TestValidateFileExistenceConfig_InvalidRangeMax(t *testing.T) {
+	errs := ValidateFileExistenceConfig(map[string]string{"README.md": "exists:1-xyz"})
+	if len(errs) != 1 {
+		t.Fatalf("expected 1 error for invalid range max, got %v", errs)
+	}
+}
+
+func TestValidateFileExistenceConfig_InvalidCount(t *testing.T) {
+	errs := ValidateFileExistenceConfig(map[string]string{"README.md": "exists:abc"})
+	if len(errs) != 1 {
+		t.Fatalf("expected 1 error for invalid count, got %v", errs)
+	}
+}
+
+func TestValidateFileExistenceConfig_MultipleErrors(t *testing.T) {
+	errs := ValidateFileExistenceConfig(map[string]string{
+		"a": "bad",
+		"b": "exists:abc",
+	})
+	if len(errs) != 2 {
+		t.Errorf("expected 2 errors, got %v", errs)
+	}
+}

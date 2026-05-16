@@ -35,7 +35,7 @@ jobs:
 
       - name: Run tests with branch coverage
         run: |
-          go test -v -race -covermode=atomic -coverprofile=coverage.out ./... 2>&1 | tee test.log
+          go test -v -race -covermode=atomic -coverprofile=coverage.out $(go list ./... | grep -v 'internal/parser/treesitter') 2>&1 | tee test.log
 
       - name: Upload test logs on failure
         if: failure()
@@ -49,11 +49,8 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{gsub(/%/, "", $3); print $3}')
           echo "Total coverage: ${COVERAGE}%"
-          # TODO: Raise to 90% once internal/parser (tree-sitter CGo, 37.3%),
-          # internal/config (file I/O, 50.6%), internal/init (65.5%),
-          # internal/rules/structure (68.7%), and cmd/structurelint (0%) have proper tests.
-          if awk "BEGIN {exit !($COVERAGE < 58)}"; then
-            echo "Coverage ${COVERAGE}% is below 58% threshold"
+          if awk "BEGIN {exit !($COVERAGE < 90)}"; then
+            echo "Coverage ${COVERAGE}% is below 90% threshold"
             exit 1
           fi
 

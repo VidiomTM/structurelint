@@ -57,4 +57,32 @@ func TestRuleContext_Helpers(t *testing.T) {
 	if val, ok := ctx.GetStringSlice("sliceVal"); !ok || len(val) != 2 {
 		t.Errorf("GetStringSlice(sliceVal) = %v, %v; want [a b], true", val, ok)
 	}
+
+	// Test GetStringMap empty key (config itself is the map)
+	flatCtx := &RuleContext{Config: map[string]interface{}{
+		"key1": "val1",
+		"key2": "val2",
+	}}
+	m, ok := flatCtx.GetStringMap("")
+	if !ok || m["key1"] != "val1" || m["key2"] != "val2" {
+		t.Errorf("GetStringMap('') with flat config = %v, %v; want map, true", m, ok)
+	}
+
+	// Test GetStringMap missing key
+	_, ok = flatCtx.GetStringMap("nonexistent")
+	if ok {
+		t.Error("GetStringMap('nonexistent') should be false")
+	}
+
+	// Test GetStringSlice empty key (always fails)
+	_, ok = ctx.GetStringSlice("")
+	if ok {
+		t.Error("GetStringSlice('') should be false")
+	}
+
+	// Test GetStringSlice non-existent key
+	_, ok = ctx.GetStringSlice("nonexistent")
+	if ok {
+		t.Error("GetStringSlice('nonexistent') should be false")
+	}
 }

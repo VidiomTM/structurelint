@@ -258,6 +258,44 @@ func TestAnalyzeHalsteadMetrics(t *testing.T) {
 	}
 }
 
+func TestConvertToTreeSitterLanguage(t *testing.T) {
+	analyzer := NewMultiLanguageCognitiveComplexityAnalyzer()
+	tests := []struct {
+		lang     string
+		want     string
+		wantErr  bool
+		errMatch string
+	}{
+		{"python", "python", false, ""},
+		{"javascript", "javascript", false, ""},
+		{"typescript", "typescript", false, ""},
+		{"java", "java", false, ""},
+		{"cpp", "cpp", false, ""},
+		{"csharp", "csharp", false, ""},
+		{"ruby", "", true, "unsupported language"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.lang, func(t *testing.T) {
+			got, err := analyzer.convertToTreeSitterLanguage(tt.lang)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("Expected error, got nil")
+				}
+				if tt.errMatch != "" && !containsString(err.Error(), tt.errMatch) {
+					t.Errorf("Error = %q, want containing %q", err.Error(), tt.errMatch)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+			if string(got) != tt.want {
+				t.Errorf("convertToTreeSitterLanguage(%q) = %q, want %q", tt.lang, string(got), tt.want)
+			}
+		})
+	}
+}
+
 // Helper functions for tests
 
 func containsString(s, substr string) bool {

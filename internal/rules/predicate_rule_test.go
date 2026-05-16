@@ -1,6 +1,8 @@
 package rules
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/Jonathangadeaharder/structurelint/internal/rules/predicate"
@@ -114,5 +116,99 @@ func TestDisallowFilesWhere(t *testing.T) {
 	}
 	if v[0].Message != "bad.go violates rule: no bad files" {
 		t.Errorf("message = %s", v[0].Message)
+	}
+}
+
+func TestExampleDomainPurityRule(t *testing.T) {
+	r := ExampleDomainPurityRule(nil)
+	if r.Name() != "domain-purity" {
+		t.Fatalf("Name() = %q", r.Name())
+	}
+	v := r.Check([]walker.FileInfo{{Path: "internal/domain/user.go"}}, nil)
+	if len(v) != 0 {
+		t.Errorf("expected 0 violations with nil graph, got %d", len(v))
+	}
+}
+
+func TestExampleTestAdjacencyPredicateRule_Violation(t *testing.T) {
+	r := ExampleTestAdjacencyPredicateRule()
+	if r.Name() != "test-adjacency-predicate" {
+		t.Fatalf("Name() = %q", r.Name())
+	}
+	files := []walker.FileInfo{
+		{Path: "main_test.go"},
+	}
+	v := r.Check(files, nil)
+	if len(v) != 1 {
+		t.Fatalf("expected 1 violation for test without source, got %d", len(v))
+	}
+	if v[0].Path != "main_test.go" {
+		t.Errorf("violation path = %s, want main_test.go", v[0].Path)
+	}
+}
+
+func TestExampleTestAdjacencyPredicateRule_NoViolation(t *testing.T) {
+	r := ExampleTestAdjacencyPredicateRule()
+	files := []walker.FileInfo{
+		{Path: "main_test.go"},
+		{Path: "main.go"},
+	}
+	v := r.Check(files, nil)
+	if len(v) != 0 {
+		t.Errorf("expected 0 violations when source exists, got %d", len(v))
+	}
+}
+
+func TestExampleLargeFileLocationRule(t *testing.T) {
+	dir := t.TempDir()
+	fixture := filepath.Join(dir, "big_file.go")
+	data := make([]byte, 20000)
+	if err := os.WriteFile(fixture, data, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	r := ExampleLargeFileLocationRule()
+	if r.Name() != "large-file-location" {
+		t.Fatalf("Name() = %q", r.Name())
+	}
+
+	files := []walker.FileInfo{
+		{AbsPath: fixture, Path: "big_file.go"},
+	}
+	v := r.Check(files, nil)
+	if len(v) != 1 {
+		t.Fatalf("expected 1 violation for large file, got %d", len(v))
+	}
+}
+
+func TestExampleLargeFileLocationRule_AllowedDir(t *testing.T) {
+	dir := t.TempDir()
+	vendorDir := filepath.Join(dir, "vendor")
+	if err := os.MkdirAll(vendorDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	fixture := filepath.Join(vendorDir, "big_file.go")
+	data := make([]byte, 20000)
+	if err := os.WriteFile(fixture, data, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	files := []walker.FileInfo{
+		{AbsPath: fixture, Path: "some/vendor/big_file.go"},
+	}
+	v := ExampleLargeFileLocationRule().Check(files, nil)
+	if len(v) != 0 {
+		t.Errorf("expected 0 violations for vendor dir, got %d", len(v))
+	}
+}
+
+func TestExampleNoOrphansRule(t *testing.T) {
+	r := ExampleNoOrphansRule(nil)
+	if r.Name() != "no-orphans" {
+		t.Fatalf("Name() = %q", r.Name())
+	}
+	v := r.Check([]walker.FileInfo{{Path: "main.go"}}, nil)
+	if len(v) != 0 {
+		t.Errorf("expected 0 violations with nil graph, got %d", len(v))
 	}
 }
