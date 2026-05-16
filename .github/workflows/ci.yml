@@ -33,9 +33,9 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      - name: Run tests
+      - name: Run tests with branch coverage
         run: |
-          go test -v -race -coverprofile=coverage.out ./... 2>&1 | tee test.log
+          go test -v -race -covermode=atomic -coverprofile=coverage.out ./... 2>&1 | tee test.log
 
       - name: Upload test logs on failure
         if: failure()
@@ -49,16 +49,25 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{gsub(/%/, "", $3); print $3}')
           echo "Total coverage: ${COVERAGE}%"
-          if awk "BEGIN {exit !($COVERAGE < 35)}"; then
-            echo "Coverage ${COVERAGE}% is below 35% threshold"
+          # TODO: Raise to 90% once internal/parser (tree-sitter CGo, 37.3%),
+          # internal/config (file I/O, 50.6%), internal/init (65.5%),
+          # internal/rules/structure (68.7%), and cmd/structurelint (0%) have proper tests.
+          if awk "BEGIN {exit !($COVERAGE < 58)}"; then
+            echo "Coverage ${COVERAGE}% is below 58% threshold"
             exit 1
           fi
 
-      - name: Upload coverage
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           file: ./coverage.out
           fail_ci_if_error: false
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   lint:
     name: Lint
@@ -222,6 +231,9 @@ jobs:
 
       - name: Fuzz smoke test — FuzzJSONOutput
         run: go test ./fuzz/ -fuzz=FuzzJSONOutput -fuzztime=30s
+
+  # NOTE: Mutation testing via go-mutesting is NOT compatible with Go 1.26 (StdSizes nil pointer).
+  # Re-enable when go-mutesting is updated or switch to a maintained alternative.
 
   self-lint:
     name: Self-Lint (Dogfooding)
