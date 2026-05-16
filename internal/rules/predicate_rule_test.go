@@ -211,4 +211,5 @@ func TestExampleNoOrphansRule(t *testing.T) {
 	if len(v) != 0 {
 		t.Errorf("expected 0 violations with nil graph, got %d", len(v))
 	}
+
 }
