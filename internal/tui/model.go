@@ -57,6 +57,8 @@ var (
 			Bold(true).
 			Foreground(lipgloss.Color("211"))
 
+	quitKeyBindings = key.NewBinding(key.WithKeys("q", "ctrl+c"))
+
 	selectedStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("170")).
@@ -120,7 +122,7 @@ func (m Model) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // handleListKeys handles keys in list view
 func (m Model) handleListKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
-	case key.Matches(msg, key.NewBinding(key.WithKeys("q", "ctrl+c"))):
+	case key.Matches(msg, quitKeyBindings):
 		m.quitting = true
 		return m, tea.Quit
 
@@ -161,7 +163,7 @@ func (m Model) handleListKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // handleDetailKeys handles keys in detail view
 func (m Model) handleDetailKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
-	case key.Matches(msg, key.NewBinding(key.WithKeys("q", "ctrl+c"))):
+	case key.Matches(msg, quitKeyBindings):
 		m.quitting = true
 		return m, tea.Quit
 
@@ -176,7 +178,7 @@ func (m Model) handleDetailKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // handleFixPreviewKeys handles keys in fix preview view
 func (m Model) handleFixPreviewKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
-	case key.Matches(msg, key.NewBinding(key.WithKeys("q", "ctrl+c"))):
+	case key.Matches(msg, quitKeyBindings):
 		m.quitting = true
 		return m, tea.Quit
 

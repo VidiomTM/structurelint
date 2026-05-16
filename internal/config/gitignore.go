@@ -90,7 +90,7 @@ func normalizeGitignorePattern(pattern string) string {
 
 // MergeWithGitignore merges .gitignore patterns with existing exclusions
 // It avoids duplicates and returns the combined list
-func MergeWithGitignore(existing []string, gitignorePatterns []string) []string {
+func MergeWithGitignore(existing, gitignorePatterns []string) []string {
 	// Create a set to track existing patterns
 	seen := make(map[string]bool)
 	result := make([]string, 0, len(existing)+len(gitignorePatterns))

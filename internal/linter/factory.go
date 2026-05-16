@@ -11,6 +11,7 @@ import (
 	"github.com/Jonathangadeaharder/structurelint/internal/walker"
 
 	// Blank imports to trigger sub-package init() registrations
+	_ "github.com/Jonathangadeaharder/structurelint/internal/rules/ci"
 	_ "github.com/Jonathangadeaharder/structurelint/internal/rules/structure"
 )
 
@@ -52,7 +53,7 @@ func (f *RuleFactory) checkBreakingChanges() error {
 		"max-cyclomatic-complexity": "Function-level complexity is out of scope for structurelint. Use a language-specific tool (gocognit, ruff, eslint complexity).",
 		"max-cognitive-complexity":  "Function-level complexity is out of scope. Use gocognit / ruff / eslint complexity.",
 		"max-halstead-effort":       "Function-level complexity is out of scope. Use a language-specific complexity tool.",
-		"github-workflows":          "CI YAML linting is out of scope. Use actionlint, zizmor, or yamllint.",
+
 		"linter-config":             "Linter presence checks are out of scope. Use a presence rule via file-existence.",
 		"contract-framework":        "Dependency-presence checks are out of scope. Encode requirements in a presence rule via file-existence.",
 		"api-spec":                  "Replace with file-existence: `api/openapi.yaml: exists:1`.",
@@ -199,36 +200,54 @@ func (f *RuleFactory) parsePathLayers(layersConfig []interface{}) []rulesgraph.P
 
 func (f *RuleFactory) createTestValidationRules() []rules.Rule {
 	var rulesList []rules.Rule
-
-	if testAdj, ok := f.config.Rules["test-adjacency"]; ok {
-		if f.isRuleEnabled("test-adjacency") {
-			if adjMap, ok := testAdj.(map[string]interface{}); ok {
-				pattern := f.getStringFromMap(adjMap, "pattern")
-				testDir := f.getStringFromMap(adjMap, "test-dir")
-				filePatterns := f.getStringSliceFromMap(adjMap, "file-patterns")
-				exemptions := f.getStringSliceFromMap(adjMap, "exemptions")
-
-				if pattern != "" && len(filePatterns) > 0 {
-					rulesList = append(rulesList, rulestest.NewTestAdjacencyRule(pattern, testDir, filePatterns, exemptions))
-				}
-			}
-		}
+	if rule := f.createTestAdjacencyRule(); rule != nil {
+		rulesList = append(rulesList, rule)
 	}
-
-	if testLoc, ok := f.config.Rules["test-location"]; ok {
-		if f.isRuleEnabled("test-location") {
-			if locMap, ok := testLoc.(map[string]interface{}); ok {
-				integrationDir := f.getStringFromMap(locMap, "integration-test-dir")
-				allowAdjacent := f.getBoolFromMap(locMap, "allow-adjacent")
-				filePatterns := f.getStringSliceFromMap(locMap, "file-patterns")
-				exemptions := f.getStringSliceFromMap(locMap, "exemptions")
-
-				rulesList = append(rulesList, rulestest.NewTestLocationRule(integrationDir, allowAdjacent, filePatterns, exemptions))
-			}
-		}
+	if rule := f.createTestLocationRule(); rule != nil {
+		rulesList = append(rulesList, rule)
 	}
-
 	return rulesList
+}
+
+func (f *RuleFactory) createTestAdjacencyRule() rules.Rule {
+	if !f.isRuleEnabled("test-adjacency") {
+		return nil
+	}
+	testAdj, ok := f.config.Rules["test-adjacency"]
+	if !ok {
+		return nil
+	}
+	adjMap, ok := testAdj.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	pattern := f.getStringFromMap(adjMap, "pattern")
+	testDir := f.getStringFromMap(adjMap, "test-dir")
+	filePatterns := f.getStringSliceFromMap(adjMap, "file-patterns")
+	exemptions := f.getStringSliceFromMap(adjMap, "exemptions")
+	if pattern != "" && len(filePatterns) > 0 {
+		return rulestest.NewTestAdjacencyRule(pattern, testDir, filePatterns, exemptions)
+	}
+	return nil
+}
+
+func (f *RuleFactory) createTestLocationRule() rules.Rule {
+	if !f.isRuleEnabled("test-location") {
+		return nil
+	}
+	testLoc, ok := f.config.Rules["test-location"]
+	if !ok {
+		return nil
+	}
+	locMap, ok := testLoc.(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	integrationDir := f.getStringFromMap(locMap, "integration-test-dir")
+	allowAdjacent := f.getBoolFromMap(locMap, "allow-adjacent")
+	filePatterns := f.getStringSliceFromMap(locMap, "file-patterns")
+	exemptions := f.getStringSliceFromMap(locMap, "exemptions")
+	return rulestest.NewTestLocationRule(integrationDir, allowAdjacent, filePatterns, exemptions)
 }
 
 func (f *RuleFactory) isRuleEnabled(ruleName string) bool {
@@ -242,6 +261,8 @@ func (f *RuleFactory) isRuleEnabled(ruleName string) bool {
 	}
 
 	switch v := value.(type) {
+	case nil:
+		return false
 	case int:
 		return v != 0
 	case bool:

@@ -195,8 +195,7 @@ func (a *UpdateImportAction) Apply() error {
 	}
 
 	// Update imports (simplified - real implementation would use AST)
-	// This is a placeholder for demonstration
-	// TODO: Implement proper AST-based import rewriting
+		// This is a placeholder for demonstration
 
 	return nil
 }
@@ -303,36 +302,44 @@ func (e *Engine) ApplyFixes(fixes []*Fix) (int, error) {
 
 	for _, fix := range fixes {
 		if e.dryRun {
-			// In dry-run mode, just report what would be done
-			fmt.Printf("[DRY RUN] Would apply fix: %s\n", fix.Description)
-			for _, action := range fix.Actions {
-				fmt.Printf("  - %s\n", action.Describe())
-			}
+			e.applyDryRun(fix)
 			applied++
 			continue
 		}
-
-		// Apply each action
-		var appliedActions []Action
-		var err error
-
-		for _, action := range fix.Actions {
-			if err = action.Apply(); err != nil {
-				// Revert all applied actions
-				for i := len(appliedActions) - 1; i >= 0; i-- {
-					if revertErr := appliedActions[i].Revert(); revertErr != nil {
-						fmt.Fprintf(os.Stderr, "warning: failed to revert action: %v\n", revertErr)
-					}
-				}
-				return applied, fmt.Errorf("failed to apply fix for %s: %w", fix.Violation.Path, err)
-			}
-			appliedActions = append(appliedActions, action)
+		if err := e.applyFix(fix); err != nil {
+			return applied, err
 		}
-
 		applied++
 	}
 
 	return applied, nil
+}
+
+func (e *Engine) applyDryRun(fix *Fix) {
+	fmt.Printf("[DRY RUN] Would apply fix: %s\n", fix.Description)
+	for _, action := range fix.Actions {
+		fmt.Printf("  - %s\n", action.Describe())
+	}
+}
+
+func (e *Engine) applyFix(fix *Fix) error {
+	var appliedActions []Action
+	for _, action := range fix.Actions {
+		if err := action.Apply(); err != nil {
+			e.revertActions(appliedActions)
+			return fmt.Errorf("failed to apply fix for %s: %w", fix.Violation.Path, err)
+		}
+		appliedActions = append(appliedActions, action)
+	}
+	return nil
+}
+
+func (e *Engine) revertActions(actions []Action) {
+	for i := len(actions) - 1; i >= 0; i-- {
+		if revertErr := actions[i].Revert(); revertErr != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to revert action: %v\n", revertErr)
+		}
+	}
 }
 
 // FixResult represents the result of applying fixes

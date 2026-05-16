@@ -258,20 +258,31 @@ func (e *DOTExporter) getFilteredNodes() []string {
 
 // filterByDepth limits nodes by dependency depth
 func (e *DOTExporter) filterByDepth(nodes []string, maxDepth int) []string {
-	// Start with nodes that have no incoming dependencies (roots)
-	roots := make([]string, 0)
+	roots := e.findRootNodes(nodes)
+	if len(roots) == 0 && len(nodes) > 0 {
+		roots = []string{nodes[0]}
+	}
+	visited := e.bfsWithinDepth(roots, maxDepth)
+	filtered := make([]string, 0, len(visited))
+	for _, node := range nodes {
+		if visited[node] {
+			filtered = append(filtered, node)
+		}
+	}
+	return filtered
+}
+
+func (e *DOTExporter) findRootNodes(nodes []string) []string {
+	var roots []string
 	for _, node := range nodes {
 		if e.graph.IncomingRefs[node] == 0 {
 			roots = append(roots, node)
 		}
 	}
+	return roots
+}
 
-	// If no roots found, use first node
-	if len(roots) == 0 && len(nodes) > 0 {
-		roots = []string{nodes[0]}
-	}
-
-	// BFS to find nodes within depth
+func (e *DOTExporter) bfsWithinDepth(roots []string, maxDepth int) map[string]bool {
 	visited := make(map[string]bool)
 	depthMap := make(map[string]int)
 	queue := make([]string, len(roots))
@@ -285,31 +296,19 @@ func (e *DOTExporter) filterByDepth(nodes []string, maxDepth int) []string {
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-
-		currentDepth := depthMap[current]
-		if currentDepth >= maxDepth {
+		if depthMap[current] >= maxDepth {
 			continue
 		}
-
-		deps := e.graph.GetDependencies(current)
-		for _, dep := range deps {
+		for _, dep := range e.graph.GetDependencies(current) {
 			if !visited[dep] {
 				visited[dep] = true
-				depthMap[dep] = currentDepth + 1
+				depthMap[dep] = depthMap[current] + 1
 				queue = append(queue, dep)
 			}
 		}
 	}
 
-	// Return only visited nodes
-	filtered := make([]string, 0, len(visited))
-	for _, node := range nodes {
-		if visited[node] {
-			filtered = append(filtered, node)
-		}
-	}
-
-	return filtered
+	return visited
 }
 
 // getNodeColor returns the border color for a node based on its layer

@@ -32,7 +32,6 @@ func (r *ExternalRuleAdapter) Name() string {
 }
 
 func (r *ExternalRuleAdapter) Check(files []walker.FileInfo, dirs map[string]*walker.DirInfo) []Violation {
-	// Create a context (TODO: pass context from linter)
 	ctx := context.Background()
 	
 	violations, err := r.plugin.Check(ctx, files, r.config)

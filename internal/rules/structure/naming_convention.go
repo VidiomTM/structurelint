@@ -11,6 +11,8 @@ import (
 	"github.com/Jonathangadeaharder/structurelint/internal/walker"
 )
 
+const namingConventionKebab = "kebab-case"
+
 // NamingConventionRule enforces naming conventions for files and directories
 type NamingConventionRule struct {
 	Patterns map[string]string // pattern -> convention (e.g., "*.ts" -> "camelCase")

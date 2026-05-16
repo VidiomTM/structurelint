@@ -56,56 +56,66 @@ func (r *FileExistenceRule) Check(files []walker.FileInfo, dirs map[string]*walk
 
 // checkRequirement checks a single file existence requirement for a directory
 func (r *FileExistenceRule) checkRequirement(dir, pattern, requirement string, dirFiles []walker.FileInfo) error {
-	// Parse the requirement (e.g., "exists:1", "exists:0", "exists:1-10")
-	parts := strings.Split(requirement, ":")
-	if len(parts) != 2 || parts[0] != "exists" {
-		return fmt.Errorf("invalid requirement format: %s", requirement)
-	}
-
-	countSpec := parts[1]
-	minCount, maxCount, err := r.parseCountSpec(countSpec)
+	minCount, maxCount, err := r.parseRequirement(requirement)
 	if err != nil {
-		return fmt.Errorf("invalid count spec %q: %w", countSpec, err)
+		return err
 	}
-
-	// Handle special .dir and .file patterns
-	var matchCount int
-	if pattern == ".dir" {
-		// Count subdirectories
-		for _, file := range dirFiles {
-			if file.IsDir && file.ParentPath == dir {
-				matchCount++
-			}
-		}
-	} else {
-		// Count matching files
-		// Handle OR patterns like "index.ts|index.js"
-		patterns := strings.Split(pattern, "|")
-		matched := make(map[string]bool)
-
-		for _, file := range dirFiles {
-			if file.ParentPath != dir {
-				continue
-			}
-			for _, p := range patterns {
-				if r.fileMatchesPattern(file, p) && !matched[file.Path] {
-					matchCount++
-					matched[file.Path] = true
-					break
-				}
-			}
-		}
-	}
-
-	// Check if count is within range
+	matchCount := r.countMatches(dir, pattern, dirFiles)
 	if matchCount < minCount {
 		return fmt.Errorf("requires at least %d file(s) matching '%s', found %d", minCount, pattern, matchCount)
 	}
 	if maxCount >= 0 && matchCount > maxCount {
 		return fmt.Errorf("requires at most %d file(s) matching '%s', found %d", maxCount, pattern, matchCount)
 	}
-
 	return nil
+}
+
+func (r *FileExistenceRule) parseRequirement(requirement string) (int, int, error) {
+	parts := strings.Split(requirement, ":")
+	if len(parts) != 2 || parts[0] != "exists" {
+		return 0, 0, fmt.Errorf("invalid requirement format: %s", requirement)
+	}
+	minCount, maxCount, err := r.parseCountSpec(parts[1])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid count spec %q: %w", parts[1], err)
+	}
+	return minCount, maxCount, nil
+}
+
+func (r *FileExistenceRule) countMatches(dir, pattern string, dirFiles []walker.FileInfo) int {
+	if pattern == ".dir" {
+		return r.countSubdirs(dir, dirFiles)
+	}
+	return r.countFilePatterns(dir, pattern, dirFiles)
+}
+
+func (r *FileExistenceRule) countSubdirs(dir string, dirFiles []walker.FileInfo) int {
+	count := 0
+	for _, file := range dirFiles {
+		if file.IsDir && file.ParentPath == dir {
+			count++
+		}
+	}
+	return count
+}
+
+func (r *FileExistenceRule) countFilePatterns(dir, pattern string, dirFiles []walker.FileInfo) int {
+	patterns := strings.Split(pattern, "|")
+	matched := make(map[string]bool)
+	count := 0
+	for _, file := range dirFiles {
+		if file.ParentPath != dir {
+			continue
+		}
+		for _, p := range patterns {
+			if r.fileMatchesPattern(file, p) && !matched[file.Path] {
+				count++
+				matched[file.Path] = true
+				break
+			}
+		}
+	}
+	return count
 }
 
 // parseCountSpec parses count specifications like "1", "0", "1-10"
@@ -161,29 +171,38 @@ func NewFileExistenceRule(requirements map[string]string) *FileExistenceRule {
 func ValidateFileExistenceConfig(requirements map[string]string) []string {
 	var errs []string
 	for pattern, requirement := range requirements {
-		parts := strings.Split(requirement, ":")
-		if len(parts) != 2 || parts[0] != "exists" {
-			errs = append(errs, fmt.Sprintf("%q: requirement must be 'exists:N' or 'exists:N-M' (got %q)", pattern, requirement))
-			continue
-		}
-		spec := parts[1]
-		if strings.Contains(spec, "-") {
-			rangeParts := strings.Split(spec, "-")
-			if len(rangeParts) != 2 {
-				errs = append(errs, fmt.Sprintf("%q: range must be 'min-max' (got %q)", pattern, spec))
-				continue
-			}
-			if _, err := strconv.Atoi(rangeParts[0]); err != nil {
-				errs = append(errs, fmt.Sprintf("%q: range minimum %q is not an integer", pattern, rangeParts[0]))
-			}
-			if _, err := strconv.Atoi(rangeParts[1]); err != nil {
-				errs = append(errs, fmt.Sprintf("%q: range maximum %q is not an integer", pattern, rangeParts[1]))
-			}
-			continue
-		}
-		if _, err := strconv.Atoi(spec); err != nil {
-			errs = append(errs, fmt.Sprintf("%q: count %q is not an integer", pattern, spec))
+		if err := validateRequirement(pattern, requirement); err != "" {
+			errs = append(errs, err)
 		}
 	}
 	return errs
+}
+
+func validateRequirement(pattern, requirement string) string {
+	parts := strings.Split(requirement, ":")
+	if len(parts) != 2 || parts[0] != "exists" {
+		return fmt.Sprintf("%q: requirement must be 'exists:N' or 'exists:N-M' (got %q)", pattern, requirement)
+	}
+	spec := parts[1]
+	if strings.Contains(spec, "-") {
+		return validateRangeSpec(pattern, spec)
+	}
+	if _, err := strconv.Atoi(spec); err != nil {
+		return fmt.Sprintf("%q: count %q is not an integer", pattern, spec)
+	}
+	return ""
+}
+
+func validateRangeSpec(pattern, spec string) string {
+	rangeParts := strings.Split(spec, "-")
+	if len(rangeParts) != 2 {
+		return fmt.Sprintf("%q: range must be 'min-max' (got %q)", pattern, spec)
+	}
+	if _, err := strconv.Atoi(rangeParts[0]); err != nil {
+		return fmt.Sprintf("%q: range minimum %q is not an integer", pattern, rangeParts[0])
+	}
+	if _, err := strconv.Atoi(rangeParts[1]); err != nil {
+		return fmt.Sprintf("%q: range maximum %q is not an integer", pattern, rangeParts[1])
+	}
+	return ""
 }

@@ -132,26 +132,27 @@ func (g *Generator) completeVariables(name string, vars Variables) Variables {
 	vars.NameKebab = toKebabCase(name)
 	vars.NameCamel = toCamelCase(name)
 
+	vars = g.fillDefaultVars(vars)
+
+	return vars
+}
+
+func (g *Generator) fillDefaultVars(vars Variables) Variables {
 	if vars.Package == "" {
-		// Detect package from directory structure
 		vars.Package = g.detectPackage()
 	}
-
 	if vars.Description == "" {
-		vars.Description = fmt.Sprintf("%s component", name)
+		vars.Description = fmt.Sprintf("%s component", vars.Name)
 	}
-
 	if vars.Author == "" {
 		vars.Author = os.Getenv("USER")
 		if vars.Author == "" {
 			vars.Author = "Developer"
 		}
 	}
-
 	if vars.CustomVars == nil {
 		vars.CustomVars = make(map[string]string)
 	}
-
 	return vars
 }
 

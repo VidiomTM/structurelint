@@ -14,80 +14,49 @@ import (
 	"github.com/Jonathangadeaharder/structurelint/internal/walker"
 )
 
+type graphOptions struct {
+	outputPath   string
+	outputFormat string
+	filterLayer  string
+	maxDepth     int
+	showCycles   bool
+	cyclesOnly   bool
+	showLayers   bool
+	highlight    bool
+	simplify     bool
+}
+
 func runGraph(args []string) (err error) {
-	fs := flag.NewFlagSet("graph", flag.ExitOnError)
-
-	// Output options
-	outputPath := fs.String("output", "", "Output file path (default: stdout)")
-	outputFormat := fs.String("format", "dot", "Output format: dot, mermaid, mermaid-html (default: dot)")
-
-	// Filtering options
-	filterLayer := fs.String("layer", "", "Show only files in this layer")
-	maxDepth := fs.Int("depth", 0, "Limit dependency depth (0 = unlimited)")
-
-	// Analysis options
-	showCycles := fs.Bool("cycles", false, "Highlight circular dependencies")
-	cyclesOnly := fs.Bool("cycles-only", false, "Only detect and report cycles (no graph output)")
-	showLayers := fs.Bool("show-layers", true, "Color nodes by their layer")
-	highlightViolations := fs.Bool("violations", true, "Highlight layer violations in red")
-	simplifyPaths := fs.Bool("simplify", true, "Shorten file paths for readability")
-
-	// Help
-	helpFlag := fs.Bool("help", false, "Show help message")
-	helpFlagShort := fs.Bool("h", false, "Show help message (shorthand)")
-
-	if err := fs.Parse(args); err != nil {
+	opts, err := parseGraphArgs(args)
+	if err != nil {
 		return err
 	}
-
-	// Handle help flag
-	if *helpFlag || *helpFlagShort {
-		printGraphHelp()
+	if opts == nil {
 		return nil
 	}
 
-	// Get path argument
 	path := "."
-	if fs.NArg() > 0 {
-		path = fs.Arg(0)
+	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
+		path = args[0]
 	}
 
-	// Load configuration
-	configs, _, err := config.FindConfigsWithGitignore(path)
+	cfg, depGraph, err := buildGraphForPath(path)
 	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
+		return err
 	}
-	cfg := config.Merge(configs...)
+	_ = cfg
 
-	// Walk the project
-	w := walker.New(path).WithExclude(cfg.Exclude)
-	if err := w.Walk(); err != nil {
-		return fmt.Errorf("failed to walk project: %w", err)
-	}
-	files := w.GetFiles()
-	_ = w.GetDirs() // Get dirs but don't use for now
-
-	// Build dependency graph
-	builder := graph.NewBuilder(path, cfg.Layers)
-	depGraph, err := builder.Build(files)
-	if err != nil {
-		return fmt.Errorf("failed to build graph: %w", err)
-	}
-
-	// If cycles-only mode, just detect and report cycles
-	if *cyclesOnly {
+	if opts.cyclesOnly {
 		return reportCycles(depGraph)
 	}
 
-	// Create output writer
-	var writer *os.File
-	if *outputPath == "" {
-		writer = os.Stdout
+	writer, err := createGraphWriter(opts.outputPath)
+	if err != nil {
+		return err
+	}
+	if writer == os.Stdout {
+		defer func() { _ = writer.Close() }()
 	} else {
-		writer, err = os.Create(*outputPath)
-		if err != nil {
-			return fmt.Errorf("failed to create output file: %w", err)
-		}
 		defer func() {
 			if closeErr := writer.Close(); closeErr != nil && err == nil {
 				err = fmt.Errorf("failed to close output file: %w", closeErr)
@@ -95,45 +64,111 @@ func runGraph(args []string) (err error) {
 		}()
 	}
 
-	// Export graph in requested format
-	switch strings.ToLower(*outputFormat) {
+	return exportGraph(depGraph, writer, opts, path)
+}
+
+func parseGraphArgs(args []string) (*graphOptions, error) {
+	fs := flag.NewFlagSet("graph", flag.ExitOnError)
+	outputPath := fs.String("output", "", "Output file path (default: stdout)")
+	outputFormat := fs.String("format", "dot", "Output format: dot, mermaid, mermaid-html (default: dot)")
+	filterLayer := fs.String("layer", "", "Show only files in this layer")
+	maxDepth := fs.Int("depth", 0, "Limit dependency depth (0 = unlimited)")
+	showCycles := fs.Bool("cycles", false, "Highlight circular dependencies")
+	cyclesOnly := fs.Bool("cycles-only", false, "Only detect and report cycles (no graph output)")
+	showLayers := fs.Bool("show-layers", true, "Color nodes by their layer")
+	highlightViolations := fs.Bool("violations", true, "Highlight layer violations in red")
+	simplifyPaths := fs.Bool("simplify", true, "Shorten file paths for readability")
+	helpFlag := fs.Bool("help", false, "Show help message")
+	helpFlagShort := fs.Bool("h", false, "Show help message (shorthand)")
+
+	if err := fs.Parse(args); err != nil {
+		return nil, err
+	}
+
+	if *helpFlag || *helpFlagShort {
+		printGraphHelp()
+		return nil, nil
+	}
+
+	return &graphOptions{
+		outputPath:   *outputPath,
+		outputFormat: *outputFormat,
+		filterLayer:  *filterLayer,
+		maxDepth:     *maxDepth,
+		showCycles:   *showCycles,
+		cyclesOnly:   *cyclesOnly,
+		showLayers:   *showLayers,
+		highlight:    *highlightViolations,
+		simplify:     *simplifyPaths,
+	}, nil
+}
+
+func buildGraphForPath(path string) (*config.Config, *graph.ImportGraph, error) {
+	configs, _, err := config.FindConfigsWithGitignore(path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to load config: %w", err)
+	}
+	cfg := config.Merge(configs...)
+
+	w := walker.New(path).WithExclude(cfg.Exclude)
+	if err := w.Walk(); err != nil {
+		return nil, nil, fmt.Errorf("failed to walk project: %w", err)
+	}
+
+	builder := graph.NewBuilder(path, cfg.Layers)
+	depGraph, err := builder.Build(w.GetFiles())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to build graph: %w", err)
+	}
+
+	return cfg, depGraph, nil
+}
+
+func createGraphWriter(outputPath string) (*os.File, error) {
+	if outputPath == "" {
+		return os.Stdout, nil
+	}
+	return os.Create(outputPath)
+}
+
+func exportGraph(depGraph *graph.ImportGraph, writer *os.File, opts *graphOptions, path string) error {
+	graphTitle := fmt.Sprintf("Dependency Graph: %s", filepath.Base(path))
+
+	switch strings.ToLower(opts.outputFormat) {
 	case "dot":
 		return exportDOT(depGraph, writer, export.DOTOptions{
-			Title:               fmt.Sprintf("Dependency Graph: %s", filepath.Base(path)),
-			ShowLayers:          *showLayers,
-			HighlightViolations: *highlightViolations,
-			FilterLayer:         *filterLayer,
-			MaxDepth:            *maxDepth,
-			ShowCycles:          *showCycles,
-			SimplifyPaths:       *simplifyPaths,
+			Title:               graphTitle,
+			ShowLayers:          opts.showLayers,
+			HighlightViolations: opts.highlight,
+			FilterLayer:         opts.filterLayer,
+			MaxDepth:            opts.maxDepth,
+			ShowCycles:          opts.showCycles,
+			SimplifyPaths:       opts.simplify,
 		})
-
 	case "mermaid":
 		return exportMermaid(depGraph, writer, false, export.MermaidOptions{
-			Title:               fmt.Sprintf("Dependency Graph: %s", filepath.Base(path)),
-			ShowLayers:          *showLayers,
-			HighlightViolations: *highlightViolations,
-			FilterLayer:         *filterLayer,
-			MaxDepth:            *maxDepth,
-			ShowCycles:          *showCycles,
-			SimplifyPaths:       *simplifyPaths,
+			Title:               graphTitle,
+			ShowLayers:          opts.showLayers,
+			HighlightViolations: opts.highlight,
+			FilterLayer:         opts.filterLayer,
+			MaxDepth:            opts.maxDepth,
+			ShowCycles:          opts.showCycles,
+			SimplifyPaths:       opts.simplify,
 			Direction:           "LR",
 		})
-
 	case "mermaid-html", "html":
 		return exportMermaid(depGraph, writer, true, export.MermaidOptions{
-			Title:               fmt.Sprintf("Dependency Graph: %s", filepath.Base(path)),
-			ShowLayers:          *showLayers,
-			HighlightViolations: *highlightViolations,
-			FilterLayer:         *filterLayer,
-			MaxDepth:            *maxDepth,
-			ShowCycles:          *showCycles,
-			SimplifyPaths:       *simplifyPaths,
+			Title:               graphTitle,
+			ShowLayers:          opts.showLayers,
+			HighlightViolations: opts.highlight,
+			FilterLayer:         opts.filterLayer,
+			MaxDepth:            opts.maxDepth,
+			ShowCycles:          opts.showCycles,
+			SimplifyPaths:       opts.simplify,
 			Direction:           "LR",
 		})
-
 	default:
-		return fmt.Errorf("unsupported format: %s (supported: dot, mermaid, mermaid-html)", *outputFormat)
+		return fmt.Errorf("unsupported format: %s (supported: dot, mermaid, mermaid-html)", opts.outputFormat)
 	}
 }
 

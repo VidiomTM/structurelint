@@ -49,34 +49,22 @@ func globToRegexp(pattern string) *regexp.Regexp {
 	}
 	var b strings.Builder
 	b.WriteString("^")
+	globPatternToRegex(pattern, &b)
+	b.WriteString("$")
+	re, err := regexp.Compile(b.String())
+	if err != nil {
+		return nil
+	}
+	globRegexpCache.Store(pattern, re)
+	return re
+}
+
+func globPatternToRegex(pattern string, b *strings.Builder) {
 	i := 0
 	for i < len(pattern) {
 		switch c := pattern[i]; c {
 		case '*':
-			if i+1 < len(pattern) && pattern[i+1] == '*' {
-				// `**` — match anything including slashes.
-				// Special-case `**/` and `/**` to make leading/trailing
-				// segments optional (so `**/foo` matches `foo` and `bar/foo`).
-				if i+2 < len(pattern) && pattern[i+2] == '/' {
-					b.WriteString("(?:.*/)?")
-					i += 3
-					continue
-				}
-				if i > 0 && pattern[i-1] == '/' {
-					// Already wrote a `/`, replace by `(?:.*)?`.
-					s := b.String()
-					b.Reset()
-					b.WriteString(strings.TrimSuffix(s, "/"))
-					b.WriteString("(?:/.*)?")
-					i += 2
-					continue
-				}
-				b.WriteString(".*")
-				i += 2
-			} else {
-				b.WriteString("[^/]*")
-				i++
-			}
+			i = globAppendStar(pattern, i, b)
 		case '?':
 			b.WriteString("[^/]")
 			i++
@@ -85,33 +73,47 @@ func globToRegexp(pattern string) *regexp.Regexp {
 			b.WriteByte(c)
 			i++
 		case '[':
-			// Pass through character class until the closing `]`.
-			// Convert `[!` negation (glob) to `[^` (regex).
-			j := i + 1
-			for j < len(pattern) && pattern[j] != ']' {
-				j++
-			}
-			if j < len(pattern) {
-				cls := pattern[i : j+1]
-				if len(cls) > 2 && cls[1] == '!' {
-					cls = "[" + "^" + cls[2:]
-				}
-				b.WriteString(cls)
-				i = j + 1
-			} else {
-				b.WriteString("\\[")
-				i++
-			}
+			i = globAppendCharClass(pattern, i, b)
 		default:
 			b.WriteByte(c)
 			i++
 		}
 	}
-	b.WriteString("$")
-	re, err := regexp.Compile(b.String())
-	if err != nil {
-		return nil
+}
+
+func globAppendStar(pattern string, i int, b *strings.Builder) int {
+	if i+1 < len(pattern) && pattern[i+1] == '*' {
+		if i+2 < len(pattern) && pattern[i+2] == '/' {
+			b.WriteString("(?:.*/)?")
+			return i + 3
+		}
+		if i > 0 && pattern[i-1] == '/' {
+			s := b.String()
+			b.Reset()
+			b.WriteString(strings.TrimSuffix(s, "/"))
+			b.WriteString("(?:/.*)?")
+			return i + 2
+		}
+		b.WriteString(".*")
+		return i + 2
 	}
-	globRegexpCache.Store(pattern, re)
-	return re
+	b.WriteString("[^/]*")
+	return i + 1
+}
+
+func globAppendCharClass(pattern string, i int, b *strings.Builder) int {
+	j := i + 1
+	for j < len(pattern) && pattern[j] != ']' {
+		j++
+	}
+	if j < len(pattern) {
+		cls := pattern[i : j+1]
+		if len(cls) > 2 && cls[1] == '!' {
+			cls = "[" + "^" + cls[2:]
+		}
+		b.WriteString(cls)
+		return j + 1
+	}
+	b.WriteString("\\[")
+	return i + 1
 }

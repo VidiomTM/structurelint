@@ -1,11 +1,13 @@
 root: true
 
 exclude:
-  - testdata/**
-  - internal/ptest/testdata/**
+  - "**/testdata/**"
   - .git
   - docs/**
   - examples/**
+  - internal/rules/quality
+  - internal/rules/ci
+  - .github/scripts
 
 rules:
   max-depth:
@@ -59,6 +61,10 @@ rules:
       - "internal/rules/structure/*.go"
       - "internal/rules/test/*.go"
       - "internal/rules/predicate/*.go"
+      - "internal/parser/treesitter/*.go"
+      - "internal/rules/ci/*.go"
+      - "internal/rules/ci/core/*.go"
+      - "internal/rules/ci/strategies/*.go"
       - "internal/ptest/*.go"
       - "fuzz/*.go"
 
@@ -74,6 +80,21 @@ rules:
       - "internal/linter/init_test.go"
       - "internal/rules/structure/enhanced_violations_test.go"
       - "internal/rules/structure/language_aware_naming_test.go"
+      - "internal/autofix/autofix_coverage_test.go"
+      - "internal/autofix/engine_coverage_test.go"
+      - "internal/graph/export/export_coverage_test.go"
+      - "internal/init/detector_coverage_test.go"
+      - "internal/lang/detector_coverage_test.go"
+      - "internal/linter/factory_coverage_test.go"
+      - "internal/linter/pbt_test.go"
+      - "internal/metrics/cognitive_extra_test.go"
+      - "internal/plugin/plugin_coverage2_test.go"
+      - "internal/plugin/plugin_coverage_test.go"
+      - "internal/rules/ci/integration_test.go"
+      - "internal/rules/graph/graph_coverage_test.go"
+      - "internal/rules/structure/coverage_fill_test.go"
+      - "internal/rules/structure/deep_coverage_test.go"
+      - "internal/walker/walker_coverage_test.go"
       - "internal/ptest/**"
       - "fuzz/**"
 

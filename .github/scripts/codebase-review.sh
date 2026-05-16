@@ -15,7 +15,7 @@ $(find . -type d ! -path '*/node_modules/*' ! -path '*/target/*' ! -path '*/.git
 
 while IFS= read -r file; do
   size=$(wc -c < "$file" 2>/dev/null || echo 0)
-  if [ "$size" -gt 0 ] && [ "$size" -lt 50000 ]; then
+  if [[ "$size" -gt 0 && "$size" -lt 50000 ]]; then
     PAYLOAD="$PAYLOAD
 ### $file
 $(head -200 "$file")

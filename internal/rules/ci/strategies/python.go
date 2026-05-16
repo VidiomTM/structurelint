@@ -10,6 +10,7 @@ type PythonStrategy struct {
 	reader             core.FileReader
 	coverage           core.CoverageThresholds
 	requirePytestLinter bool
+	maxSuppressions    int
 }
 
 func NewPythonStrategy(reader core.FileReader, cfg map[string]interface{}) *PythonStrategy {
@@ -29,6 +30,11 @@ func NewPythonStrategy(reader core.FileReader, cfg map[string]interface{}) *Pyth
 			if l, ok := cv["lines"].(float64); ok { s.coverage.Lines = l }
 			if f, ok := cv["functions"].(float64); ok { s.coverage.Functions = f }
 			if st, ok := cv["statements"].(float64); ok { s.coverage.Statements = st }
+		}
+		if ms, ok := cfg["max-suppressions"].(int); ok {
+			s.maxSuppressions = ms
+		} else if ms, ok := cfg["max-suppressions"].(float64); ok {
+			s.maxSuppressions = int(ms)
 		}
 	}
 	return s
@@ -124,7 +130,7 @@ func (s *PythonStrategy) CheckSuppressions(files []core.FileInfo, reader core.Fi
 				count++
 			}
 		}
-		if count > 0 {
+		if count > s.maxSuppressions {
 			results = append(results, core.CheckResult{
 				Path:    f.Path,
 				Message: "Python suppression comments exceed threshold",

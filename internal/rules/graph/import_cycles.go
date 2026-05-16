@@ -96,45 +96,64 @@ func (d *cycleDetector) recordCycle(file, depFile string) {
 }
 
 func (d *cycleDetector) resolve(importPath, sourceFile string) string {
+	files := d.resolveFiles()
+	if d.exactMatch(files, importPath) {
+		return importPath
+	}
+	if strings.HasPrefix(importPath, ".") {
+		return d.resolveRelative(importPath, sourceFile, files)
+	}
+	return d.suffixMatch(files, importPath)
+}
+
+func (d *cycleDetector) resolveFiles() []string {
 	files := d.graph.AllFiles
-	if len(files) == 0 {
-		seen := make(map[string]bool)
-		for f := range d.graph.Dependencies {
-			seen[f] = true
-		}
-		for _, deps := range d.graph.Dependencies {
-			for _, dep := range deps {
-				seen[dep] = true
-			}
-		}
-		for f := range seen {
-			files = append(files, f)
+	if len(files) > 0 {
+		return files
+	}
+	seen := make(map[string]bool)
+	for f := range d.graph.Dependencies {
+		seen[f] = true
+	}
+	for _, deps := range d.graph.Dependencies {
+		for _, dep := range deps {
+			seen[dep] = true
 		}
 	}
+	for f := range seen {
+		files = append(files, f)
+	}
+	return files
+}
 
+func (d *cycleDetector) exactMatch(files []string, importPath string) bool {
 	for _, f := range files {
 		if f == importPath {
-			return importPath
+			return true
 		}
 	}
+	return false
+}
 
-	if strings.HasPrefix(importPath, ".") {
-		resolved := filepath.Join(filepath.Dir(sourceFile), importPath)
+func (d *cycleDetector) resolveRelative(importPath, sourceFile string, files []string) string {
+	resolved := filepath.Join(filepath.Dir(sourceFile), importPath)
+	for _, f := range files {
+		if f == resolved {
+			return resolved
+		}
+	}
+	for _, ext := range []string{".go", ".py", ".ts", ".js", ".java", ".cs", ".cpp", ".hpp"} {
+		candidate := resolved + ext
 		for _, f := range files {
-			if f == resolved {
-				return resolved
-			}
-		}
-		for _, ext := range []string{".go", ".py", ".ts", ".js", ".java", ".cs", ".cpp", ".hpp"} {
-			candidate := resolved + ext
-			for _, f := range files {
-				if f == candidate {
-					return candidate
-				}
+			if f == candidate {
+				return candidate
 			}
 		}
 	}
+	return ""
+}
 
+func (d *cycleDetector) suffixMatch(files []string, importPath string) string {
 	for _, f := range files {
 		if strings.HasSuffix(f, importPath) {
 			return f

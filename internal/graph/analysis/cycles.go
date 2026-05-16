@@ -79,37 +79,38 @@ func (d *CycleDetector) FindAllCycles() []Cycle {
 
 // HasCycle checks if the graph contains any cycles
 func (d *CycleDetector) HasCycle() bool {
-	visited := make(map[string]bool)
-	recStack := make(map[string]bool)
-
-	var dfs func(node string) bool
-	dfs = func(node string) bool {
-		visited[node] = true
-		recStack[node] = true
-
-		for _, dep := range d.graph.GetDependencies(node) {
-			if !visited[dep] {
-				if dfs(dep) {
-					return true
-				}
-			} else if recStack[dep] {
-				return true
-			}
-		}
-
-		recStack[node] = false
-		return false
+	state := &dfsCycleState{
+		visited:  make(map[string]bool),
+		recStack: make(map[string]bool),
 	}
-
-	allNodes := d.getAllNodes()
-	for _, node := range allNodes {
-		if !visited[node] {
-			if dfs(node) {
-				return true
-			}
+	for _, node := range d.getAllNodes() {
+		if !state.visited[node] && d.hasCycleDFS(node, state) {
+			return true
 		}
 	}
+	return false
+}
 
+type dfsCycleState struct {
+	visited  map[string]bool
+	recStack map[string]bool
+}
+
+func (d *CycleDetector) hasCycleDFS(node string, state *dfsCycleState) bool {
+	state.visited[node] = true
+	state.recStack[node] = true
+
+	for _, dep := range d.graph.GetDependencies(node) {
+		if !state.visited[dep] {
+			if d.hasCycleDFS(dep, state) {
+				return true
+			}
+		} else if state.recStack[dep] {
+			return true
+		}
+	}
+
+	state.recStack[node] = false
 	return false
 }
 

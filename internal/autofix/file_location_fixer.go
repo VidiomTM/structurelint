@@ -46,7 +46,6 @@ func (f *FileLocationFixer) GenerateFix(v rules.Violation, files []walker.FileIn
 				TargetPath:    targetPath,
 				UpdateImports: true,
 			},
-			// TODO: Add import update actions for dependent files
 		},
 		Confidence: 0.85, // High confidence but not 100% due to import complexity
 		Safe:       false, // File moves require caution

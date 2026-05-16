@@ -462,59 +462,20 @@ func (p *Parser) parseCSharp(filePath string) ([]Import, error) {
 
 	var imports []Import
 	scanner := bufio.NewScanner(file)
-
-	// Extract namespace from current file to determine relative imports
 	var currentNamespace string
 
-	// Regex patterns for C# using statements
-	// using System;
-	// using System.Collections.Generic;
-	// using MyNamespace.SubNamespace;
-	// using static System.Math;
-	// using Alias = System.Text.StringBuilder;
 	namespaceRegex := regexp.MustCompile(`^\s*namespace\s+([\w.]+)`)
 	usingRegex := regexp.MustCompile(`^\s*using\s+(?:static\s+)?(?:\w+\s*=\s*)?([\w.]+)\s*;`)
 
 	for scanner.Scan() {
 		line := scanner.Text()
-
-		// Extract namespace declaration
 		if match := namespaceRegex.FindStringSubmatch(line); match != nil {
 			currentNamespace = match[1]
 			continue
 		}
-
-		// Extract using statements
 		if match := usingRegex.FindStringSubmatch(line); match != nil {
 			importPath := match[1]
-
-			// Determine if relative (same namespace hierarchy)
-			// Only consider exact namespace prefix matches as relative
-			// to avoid false positives with third-party libraries
-			isRelative := false
-			if currentNamespace != "" && strings.HasPrefix(importPath, currentNamespace+".") {
-				isRelative = true
-			}
-
-			// Also check if it's in the same root namespace as the current file
-			// but exclude common third-party and system namespaces
-			if currentNamespace != "" && !isRelative {
-				commonExternalNamespaces := map[string]bool{
-					"System": true, "Microsoft": true, "Newtonsoft": true,
-					"AutoMapper": true, "Serilog": true, "NLog": true,
-					"Xunit": true, "NUnit": true, "Moq": true,
-					"FluentAssertions": true, "MediatR": true,
-				}
-
-				currentRoot := strings.Split(currentNamespace, ".")[0]
-				importRoot := strings.Split(importPath, ".")[0]
-
-				// Only mark as relative if same root AND not a known external namespace
-				if currentRoot == importRoot && !commonExternalNamespaces[currentRoot] {
-					isRelative = true
-				}
-			}
-
+			isRelative := p.isCSharpRelative(currentNamespace, importPath)
 			imports = append(imports, Import{
 				SourceFile: filePath,
 				ImportPath: importPath,
@@ -524,6 +485,27 @@ func (p *Parser) parseCSharp(filePath string) ([]Import, error) {
 	}
 
 	return imports, scanner.Err()
+}
+
+func (p *Parser) isCSharpRelative(currentNamespace, importPath string) bool {
+	if currentNamespace == "" {
+		return false
+	}
+	if strings.HasPrefix(importPath, currentNamespace+".") {
+		return true
+	}
+	currentRoot := strings.Split(currentNamespace, ".")[0]
+	importRoot := strings.Split(importPath, ".")[0]
+	if currentRoot != importRoot {
+		return false
+	}
+	commonExternal := map[string]bool{
+		"System": true, "Microsoft": true, "Newtonsoft": true,
+		"AutoMapper": true, "Serilog": true, "NLog": true,
+		"Xunit": true, "NUnit": true, "Moq": true,
+		"FluentAssertions": true, "MediatR": true,
+	}
+	return !commonExternal[currentRoot]
 }
 
 // parseCSharpExports extracts public types from C# files

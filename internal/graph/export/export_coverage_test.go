@@ -133,8 +133,11 @@ func TestMermaidExport_GetMermaidEdgeStyle_Cycle(t *testing.T) {
 	g := &graph.ImportGraph{FileLayers: make(map[string]*config.Layer)}
 	m := NewMermaidExporter(g, MermaidOptions{ShowCycles: true})
 	d := NewDOTExporter(g, DOTOptions{})
-	style := m.getMermaidEdgeStyle("A", "B", "n0", "n1", "A", "B",
-		map[string]map[string]bool{"A": {"B": true}}, d)
+	ctx := &mermaidEdgeCtx{
+		cycles:      map[string]map[string]bool{"A": {"B": true}},
+		dotExporter: d,
+	}
+	style := m.getMermaidEdgeStyle(ctx, "A", "B", "n0", "n1", "A", "B")
 	assert.Contains(t, style, "cycle")
 }
 
@@ -149,9 +152,12 @@ func TestMermaidExport_GetMermaidEdgeStyle_Violation(t *testing.T) {
 	}
 	m := NewMermaidExporter(g, MermaidOptions{HighlightViolations: true})
 	d := NewDOTExporter(g, DOTOptions{})
-	style := m.getMermaidEdgeStyle("src/domain/user.go", "src/application/service.go",
-		"n0", "n1", "user", "service",
-		make(map[string]map[string]bool), d)
+	ctx := &mermaidEdgeCtx{
+		cycles:      make(map[string]map[string]bool),
+		dotExporter: d,
+	}
+	style := m.getMermaidEdgeStyle(ctx, "src/domain/user.go", "src/application/service.go",
+		"n0", "n1", "user", "service")
 	assert.Contains(t, style, "violation")
 }
 
@@ -159,8 +165,11 @@ func TestMermaidExport_GetMermaidEdgeStyle_Default(t *testing.T) {
 	g := &graph.ImportGraph{FileLayers: make(map[string]*config.Layer)}
 	m := NewMermaidExporter(g, MermaidOptions{})
 	d := NewDOTExporter(g, DOTOptions{})
-	style := m.getMermaidEdgeStyle("A", "B", "n0", "n1", "A", "B",
-		make(map[string]map[string]bool), d)
+	ctx := &mermaidEdgeCtx{
+		cycles:      make(map[string]map[string]bool),
+		dotExporter: d,
+	}
+	style := m.getMermaidEdgeStyle(ctx, "A", "B", "n0", "n1", "A", "B")
 	assert.Contains(t, style, "-->")
 }
 
@@ -264,8 +273,13 @@ func TestMermaidExport_writeMermaidEdges_Error(t *testing.T) {
 	m := NewMermaidExporter(g, MermaidOptions{})
 	d := NewDOTExporter(g, DOTOptions{})
 	nodes := m.createNodeIDMap([]string{"A", "B"})
-	err := m.writeMermaidEdges(&badWriter{}, []string{"A"}, nodes,
-		make(map[string]map[string]bool), d)
+	ctx := &mermaidEdgeCtx{
+		w:           &badWriter{},
+		nodeIDs:     nodes,
+		cycles:      make(map[string]map[string]bool),
+		dotExporter: d,
+	}
+	err := m.writeMermaidEdges(ctx, []string{"A"})
 	assert.Error(t, err)
 }
 
@@ -273,8 +287,13 @@ func TestMermaidExport_WriteSingleEdge_WriteError(t *testing.T) {
 	g := &graph.ImportGraph{FileLayers: make(map[string]*config.Layer)}
 	m := NewMermaidExporter(g, MermaidOptions{})
 	d := NewDOTExporter(g, DOTOptions{})
-	err := m.writeSingleEdge(&badWriter{}, "A", "B", "n0", "n1", "A",
-		make(map[string]map[string]bool), d)
+	ctx := &mermaidEdgeCtx{
+		w:           &badWriter{},
+		nodeIDs:     map[string]string{},
+		cycles:      make(map[string]map[string]bool),
+		dotExporter: d,
+	}
+	err := m.writeSingleEdge(ctx, "A", "B", "n0", "n1", "A")
 	assert.Error(t, err)
 }
 

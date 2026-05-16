@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Jonathangadeaharder/structurelint/internal/config"
 	"github.com/Jonathangadeaharder/structurelint/internal/graph"
 	"github.com/Jonathangadeaharder/structurelint/internal/rules"
 	"github.com/Jonathangadeaharder/structurelint/internal/walker"
@@ -28,48 +29,52 @@ func (r *LayerBoundariesRule) Check(files []walker.FileInfo, dirs map[string]*wa
 
 	var violations []rules.Violation
 
-	// Check each file's imports
 	for sourceFile, dependencies := range r.Graph.Dependencies {
-		sourceLayer := r.Graph.GetLayerForFile(sourceFile)
-
-		// Skip files not in any layer
-		if sourceLayer == nil {
-			continue
-		}
-
-		// Check each dependency
-		for _, dep := range dependencies {
-			// Resolve the dependency to a file in the project
-			targetFile := r.resolveDependencyToFile(dep, files)
-			if targetFile == "" {
-				// External dependency or unresolved, skip
-				continue
-			}
-
-			targetLayer := r.Graph.GetLayerForFile(targetFile)
-
-			// Check if this dependency is allowed
-			if !r.Graph.CanLayerDependOn(sourceLayer, targetLayer) {
-				targetLayerName := "unknown"
-				if targetLayer != nil {
-					targetLayerName = targetLayer.Name
-				}
-
-				violations = append(violations, rules.Violation{
-					Rule: r.Name(),
-					Path: sourceFile,
-					Message: fmt.Sprintf(
-						"layer '%s' cannot import from layer '%s' (imported: %s)",
-						sourceLayer.Name,
-						targetLayerName,
-						targetFile,
-					),
-				})
-			}
-		}
+		violations = append(violations, r.checkFileDependencies(sourceFile, dependencies, files)...)
 	}
 
 	return violations
+}
+
+func (r *LayerBoundariesRule) checkFileDependencies(sourceFile string, dependencies []string, files []walker.FileInfo) []rules.Violation {
+	sourceLayer := r.Graph.GetLayerForFile(sourceFile)
+	if sourceLayer == nil {
+		return nil
+	}
+
+	var violations []rules.Violation
+	for _, dep := range dependencies {
+		violation := r.checkSingleDependency(sourceFile, dep, sourceLayer, files)
+		if violation != nil {
+			violations = append(violations, *violation)
+		}
+	}
+	return violations
+}
+
+func (r *LayerBoundariesRule) checkSingleDependency(sourceFile, dep string, sourceLayer *config.Layer, files []walker.FileInfo) *rules.Violation {
+	targetFile := r.resolveDependencyToFile(dep, files)
+	if targetFile == "" {
+		return nil
+	}
+	targetLayer := r.Graph.GetLayerForFile(targetFile)
+	if r.Graph.CanLayerDependOn(sourceLayer, targetLayer) {
+		return nil
+	}
+	targetLayerName := "unknown"
+	if targetLayer != nil {
+		targetLayerName = targetLayer.Name
+	}
+	return &rules.Violation{
+		Rule: r.Name(),
+		Path: sourceFile,
+		Message: fmt.Sprintf(
+			"layer '%s' cannot import from layer '%s' (imported: %s)",
+			sourceLayer.Name,
+			targetLayerName,
+			targetFile,
+		),
+	}
 }
 
 // resolveDependencyToFile attempts to resolve an import path to an actual file in the project

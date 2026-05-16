@@ -131,34 +131,32 @@ func (d *Detector) findGoFiles(rootPath string) ([]string, error) {
 		if err != nil {
 			return err
 		}
-
-		// Skip directories and non-Go files
 		if info.IsDir() || filepath.Ext(path) != ".go" {
 			return nil
 		}
-
-		// Check exclude patterns
-		for _, pattern := range d.config.ExcludePattern {
-			var matched bool
-			if strings.Contains(pattern, "/") || strings.Contains(pattern, "**") {
-				// Match against full path for directory patterns
-				matched = matchesPattern(path, pattern)
-			} else {
-				// Match against basename for simple patterns
-				if m, err := filepath.Match(pattern, filepath.Base(path)); err == nil {
-					matched = m
-				}
-			}
-			if matched {
-				return nil
-			}
+		if d.isExcluded(path) {
+			return nil
 		}
-
 		files = append(files, path)
 		return nil
 	})
 
 	return files, err
+}
+
+func (d *Detector) isExcluded(path string) bool {
+	for _, pattern := range d.config.ExcludePattern {
+		if strings.Contains(pattern, "/") || strings.Contains(pattern, "**") {
+			if matchesPattern(path, pattern) {
+				return true
+			}
+		} else {
+			if m, err := filepath.Match(pattern, filepath.Base(path)); err == nil && m {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // matchesPattern checks if a path matches a pattern with ** wildcards

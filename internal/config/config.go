@@ -84,7 +84,7 @@ func Load(path string) (*Config, error) {
 
 // LoadWithGitignore loads a configuration and auto-applies .gitignore patterns
 // rootDir is the directory to search for .gitignore (typically the project root)
-func LoadWithGitignore(path string, rootDir string) (*Config, error) {
+func LoadWithGitignore(path, rootDir string) (*Config, error) {
 	config, err := Load(path)
 	if err != nil {
 		return nil, err

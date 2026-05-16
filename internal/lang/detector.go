@@ -198,16 +198,10 @@ func (d *Detector) detectFromFile(path string, info os.FileInfo) *LanguageInfo {
 }
 
 // detectJavaScriptProject detects JavaScript/TypeScript and React from package.json
-func (d *Detector) detectJavaScriptProject(packageJSONPath string, dir string) *LanguageInfo {
-	// Read package.json
+func (d *Detector) detectJavaScriptProject(packageJSONPath, dir string) *LanguageInfo {
 	data, err := os.ReadFile(packageJSONPath)
 	if err != nil {
-		// Default to JavaScript if we can't read the file
-		return &LanguageInfo{
-			Language:     JavaScript,
-			RootDir:      dir,
-			ManifestFile: packageJSONPath,
-		}
+		return defaultJSInfo(JavaScript, dir, packageJSONPath)
 	}
 
 	var pkg struct {
@@ -216,48 +210,12 @@ func (d *Detector) detectJavaScriptProject(packageJSONPath string, dir string) *
 	}
 
 	if err := json.Unmarshal(data, &pkg); err != nil {
-		return &LanguageInfo{
-			Language:     JavaScript,
-			RootDir:      dir,
-			ManifestFile: packageJSONPath,
-		}
+		return defaultJSInfo(JavaScript, dir, packageJSONPath)
 	}
 
-	// Detect if TypeScript is used
-	isTypeScript := false
-	if pkg.Dependencies != nil {
-		if _, ok := pkg.Dependencies["typescript"]; ok {
-			isTypeScript = true
-		}
-	}
-	if pkg.DevDependencies != nil {
-		if _, ok := pkg.DevDependencies["typescript"]; ok {
-			isTypeScript = true
-		}
-	}
-
-	// Detect if React is used
-	isReact := false
-	var subLanguages []Language
-	if pkg.Dependencies != nil {
-		if _, ok := pkg.Dependencies["react"]; ok {
-			isReact = true
-			subLanguages = append(subLanguages, React)
-		}
-	}
-
-	primaryLang := JavaScript
-	if isTypeScript {
-		primaryLang = TypeScript
-	}
-
-	// If React is detected and no TypeScript, still mark it
-	if isReact && !isTypeScript {
-		// Check for tsconfig.json in the same directory
-		if _, err := os.Stat(filepath.Join(dir, "tsconfig.json")); err == nil {
-			primaryLang = TypeScript
-		}
-	}
+	isTypeScript := d.hasTypeScript(pkg)
+	subLanguages := d.detectSubLanguages(pkg)
+	primaryLang := d.resolvePrimaryLang(isTypeScript, subLanguages, dir)
 
 	return &LanguageInfo{
 		Language:     primaryLang,
@@ -265,6 +223,57 @@ func (d *Detector) detectJavaScriptProject(packageJSONPath string, dir string) *
 		ManifestFile: packageJSONPath,
 		SubLanguages: subLanguages,
 	}
+}
+
+func defaultJSInfo(lang Language, dir, path string) *LanguageInfo {
+	return &LanguageInfo{
+		Language:     lang,
+		RootDir:      dir,
+		ManifestFile: path,
+	}
+}
+
+func (d *Detector) hasTypeScript(pkg struct {
+	Dependencies    map[string]string `json:"dependencies"`
+	DevDependencies map[string]string `json:"devDependencies"`
+}) bool {
+	if pkg.Dependencies != nil {
+		if _, ok := pkg.Dependencies["typescript"]; ok {
+			return true
+		}
+	}
+	if pkg.DevDependencies != nil {
+		if _, ok := pkg.DevDependencies["typescript"]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func (d *Detector) detectSubLanguages(pkg struct {
+	Dependencies    map[string]string `json:"dependencies"`
+	DevDependencies map[string]string `json:"devDependencies"`
+}) []Language {
+	if pkg.Dependencies != nil {
+		if _, ok := pkg.Dependencies["react"]; ok {
+			return []Language{React}
+		}
+	}
+	return nil
+}
+
+func (d *Detector) resolvePrimaryLang(isTypeScript bool, subLanguages []Language, dir string) Language {
+	if isTypeScript {
+		return TypeScript
+	}
+	for _, l := range subLanguages {
+		if l == React {
+			if _, err := os.Stat(filepath.Join(dir, "tsconfig.json")); err == nil {
+				return TypeScript
+			}
+		}
+	}
+	return JavaScript
 }
 
 // shouldSkipDir returns true if the directory should be skipped during detection

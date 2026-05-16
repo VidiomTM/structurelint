@@ -46,6 +46,8 @@ app = FastAPI(
     description="HTTP API for semantic code clone detection using GraphCodeBERT"
 )
 
+DEFAULT_MODEL = "microsoft/graphcodebert-base"
+
 # Global state with thread-safe initialization
 embedder: Optional[GraphCodeBERTEmbedder] = None
 embedder_lock = Lock()  # Thread-safe initialization
@@ -94,7 +96,7 @@ class SemanticCloneStats(BaseModel):
     files_analyzed: int
     functions_analyzed: int
     duration_ms: int
-    model_used: str = "microsoft/graphcodebert-base"
+    model_used: str = DEFAULT_MODEL
 
 
 class SemanticCloneResponse(BaseModel):
@@ -141,7 +143,7 @@ async def health_check() -> HealthResponse:
                 try:
                     # Try to initialize embedder (this can fail if model not downloaded)
                     embedder = GraphCodeBERTEmbedder(
-                        model_name="microsoft/graphcodebert-base",
+                        model_name=DEFAULT_MODEL,
                         device="cpu"  # Use CPU for health check
                     )
                     return HealthResponse(
@@ -175,6 +177,7 @@ async def detect_clones(request: SemanticCloneRequest) -> SemanticCloneResponse:
             detail=f"Dependencies not available: {IMPORT_ERROR}"
         )
 
+
     start_time = time.time()
 
     try:
@@ -186,19 +189,19 @@ async def detect_clones(request: SemanticCloneRequest) -> SemanticCloneResponse:
                 if embedder is None:
                     logger.info("Initializing GraphCodeBERT embedder...")
                     embedder = GraphCodeBERTEmbedder(
-                        model_name="microsoft/graphcodebert-base",
-                        device="cpu"  # TODO: Support GPU via config
+                        model_name=DEFAULT_MODEL,
+                        device="cpu"
                     )
 
         # Parse source files
-        logger.info(f"Parsing source directory: {request.source_dir}")
+        logger.info("Parsing source directory")
         parser = TreeSitterParser(languages=request.languages)
 
         functions = parser.parse_directory(
             Path(request.source_dir),
             exclude_patterns=request.exclude_patterns
         )
-        logger.info(f"Found {len(functions)} functions across {len(set(f.file_path for f in functions))} files")
+        logger.info(f"Found {len(functions)} functions across {len({f.file_path for f in functions})} files")
 
         if len(functions) == 0:
             return SemanticCloneResponse(
@@ -292,7 +295,7 @@ async def detect_clones(request: SemanticCloneRequest) -> SemanticCloneResponse:
         )
 
     except Exception as e:
-        logger.error(f"Clone detection failed: {e}", exc_info=True)
+        logger.exception("Clone detection failed")
         duration_ms = int((time.time() - start_time) * 1000)
 
         return SemanticCloneResponse(

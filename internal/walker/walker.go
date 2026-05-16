@@ -256,30 +256,22 @@ func patternRegexp(pattern string) *regexp.Regexp {
 	}
 	var b strings.Builder
 	b.WriteString("^")
+	walkerPatternToRegex(pattern, &b)
+	b.WriteString("$")
+	re, err := regexp.Compile(b.String())
+	if err != nil {
+		return nil
+	}
+	walkerGlobCache.Store(pattern, re)
+	return re
+}
+
+func walkerPatternToRegex(pattern string, b *strings.Builder) {
 	i := 0
 	for i < len(pattern) {
 		switch c := pattern[i]; c {
 		case '*':
-			if i+1 < len(pattern) && pattern[i+1] == '*' {
-				if i+2 < len(pattern) && pattern[i+2] == '/' {
-					b.WriteString("(?:.*/)?")
-					i += 3
-					continue
-				}
-				if i > 0 && pattern[i-1] == '/' {
-					s := b.String()
-					b.Reset()
-					b.WriteString(strings.TrimSuffix(s, "/"))
-					b.WriteString("(?:/.*)?")
-					i += 2
-					continue
-				}
-				b.WriteString(".*")
-				i += 2
-			} else {
-				b.WriteString("[^/]*")
-				i++
-			}
+			i = walkerAppendStar(pattern, i, b)
 		case '?':
 			b.WriteString("[^/]")
 			i++
@@ -288,27 +280,43 @@ func patternRegexp(pattern string) *regexp.Regexp {
 			b.WriteByte(c)
 			i++
 		case '[':
-			j := i + 1
-			for j < len(pattern) && pattern[j] != ']' {
-				j++
-			}
-			if j < len(pattern) {
-				b.WriteString(pattern[i : j+1])
-				i = j + 1
-			} else {
-				b.WriteString("\\[")
-				i++
-			}
+			i = walkerAppendCharClass(pattern, i, b)
 		default:
 			b.WriteByte(c)
 			i++
 		}
 	}
-	b.WriteString("$")
-	re, err := regexp.Compile(b.String())
-	if err != nil {
-		return nil
+}
+
+func walkerAppendStar(pattern string, i int, b *strings.Builder) int {
+	if i+1 < len(pattern) && pattern[i+1] == '*' {
+		if i+2 < len(pattern) && pattern[i+2] == '/' {
+			b.WriteString("(?:.*/)?")
+			return i + 3
+		}
+		if i > 0 && pattern[i-1] == '/' {
+			s := b.String()
+			b.Reset()
+			b.WriteString(strings.TrimSuffix(s, "/"))
+			b.WriteString("(?:/.*)?")
+			return i + 2
+		}
+		b.WriteString(".*")
+		return i + 2
 	}
-	walkerGlobCache.Store(pattern, re)
-	return re
+	b.WriteString("[^/]*")
+	return i + 1
+}
+
+func walkerAppendCharClass(pattern string, i int, b *strings.Builder) int {
+	j := i + 1
+	for j < len(pattern) && pattern[j] != ']' {
+		j++
+	}
+	if j < len(pattern) {
+		b.WriteString(pattern[i : j+1])
+		return j + 1
+	}
+	b.WriteString("\\[")
+	return i + 1
 }

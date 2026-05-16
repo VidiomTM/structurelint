@@ -68,7 +68,13 @@ func (e *MermaidExporter) Export(w io.Writer) error {
 	cycles := e.getCyclesIfEnabled(dotExporter)
 	nodeIDs := e.createNodeIDMap(nodes)
 
-	if err := e.writeMermaidEdges(w, nodes, nodeIDs, cycles, dotExporter); err != nil {
+	edgeCtx := &mermaidEdgeCtx{
+		w:           w,
+		nodeIDs:     nodeIDs,
+		cycles:      cycles,
+		dotExporter: dotExporter,
+	}
+	if err := e.writeMermaidEdges(edgeCtx, nodes); err != nil {
 		return err
 	}
 
@@ -126,14 +132,11 @@ func (e *MermaidExporter) createNodeIDMap(nodes []string) map[string]string {
 
 // writeMermaidEdges writes all edges in Mermaid format
 func (e *MermaidExporter) writeMermaidEdges(
-	w io.Writer,
+	ctx *mermaidEdgeCtx,
 	nodes []string,
-	nodeIDs map[string]string,
-	cycles map[string]map[string]bool,
-	dotExporter *DOTExporter,
 ) error {
 	for _, fromNode := range nodes {
-		if err := e.writeNodeEdges(w, fromNode, nodeIDs, cycles, dotExporter); err != nil {
+		if err := e.writeNodeEdges(ctx, fromNode); err != nil {
 			return err
 		}
 	}
@@ -142,31 +145,28 @@ func (e *MermaidExporter) writeMermaidEdges(
 
 // writeNodeEdges writes edges for a single node
 func (e *MermaidExporter) writeNodeEdges(
-	w io.Writer,
+	ctx *mermaidEdgeCtx,
 	fromNode string,
-	nodeIDs map[string]string,
-	cycles map[string]map[string]bool,
-	dotExporter *DOTExporter,
 ) error {
-	fromID := nodeIDs[fromNode]
-	fromLabel := e.getNodeLabel(fromNode, dotExporter)
+	fromID := ctx.nodeIDs[fromNode]
+	fromLabel := e.getNodeLabel(fromNode, ctx.dotExporter)
 	deps := e.graph.GetDependencies(fromNode)
 	hasEdges := false
 
 	for _, toNode := range deps {
-		toID, exists := nodeIDs[toNode]
+		toID, exists := ctx.nodeIDs[toNode]
 		if !exists {
 			continue
 		}
 
 		hasEdges = true
-		if err := e.writeSingleEdge(w, fromNode, toNode, fromID, toID, fromLabel, cycles, dotExporter); err != nil {
+		if err := e.writeSingleEdge(ctx, fromNode, toNode, fromID, toID, fromLabel); err != nil {
 			return err
 		}
 	}
 
 	if !hasEdges {
-		return e.writeIsolatedNode(w, fromID, fromLabel)
+		return e.writeIsolatedNode(ctx.w, fromID, fromLabel)
 	}
 
 	return nil
@@ -180,17 +180,22 @@ func (e *MermaidExporter) getNodeLabel(node string, dotExporter *DOTExporter) st
 	return node
 }
 
+type mermaidEdgeCtx struct {
+	w           io.Writer
+	nodeIDs     map[string]string
+	cycles      map[string]map[string]bool
+	dotExporter *DOTExporter
+}
+
 // writeSingleEdge writes a single Mermaid edge
 func (e *MermaidExporter) writeSingleEdge(
-	w io.Writer,
+	ctx *mermaidEdgeCtx,
 	fromNode, toNode, fromID, toID, fromLabel string,
-	cycles map[string]map[string]bool,
-	dotExporter *DOTExporter,
 ) error {
-	toLabel := e.getNodeLabel(toNode, dotExporter)
-	edgeStyle := e.getMermaidEdgeStyle(fromNode, toNode, fromID, toID, fromLabel, toLabel, cycles, dotExporter)
+	toLabel := e.getNodeLabel(toNode, ctx.dotExporter)
+	edgeStyle := e.getMermaidEdgeStyle(ctx, fromNode, toNode, fromID, toID, fromLabel, toLabel)
 
-	if _, err := fmt.Fprintf(w, "%s", edgeStyle); err != nil {
+	if _, err := fmt.Fprintf(ctx.w, "%s", edgeStyle); err != nil {
 		return fmt.Errorf("failed to write Mermaid edge: %w", err)
 	}
 
@@ -199,12 +204,11 @@ func (e *MermaidExporter) writeSingleEdge(
 
 // getMermaidEdgeStyle determines the Mermaid edge style
 func (e *MermaidExporter) getMermaidEdgeStyle(
+	ctx *mermaidEdgeCtx,
 	fromNode, toNode, fromID, toID, fromLabel, toLabel string,
-	cycles map[string]map[string]bool,
-	dotExporter *DOTExporter,
 ) string {
-	isCycle := cycles[fromNode] != nil && cycles[fromNode][toNode]
-	isViolation := dotExporter.isViolation(fromNode, toNode)
+	isCycle := ctx.cycles[fromNode] != nil && ctx.cycles[fromNode][toNode]
+	isViolation := ctx.dotExporter.isViolation(fromNode, toNode)
 
 	if isCycle && e.options.ShowCycles {
 		return fmt.Sprintf("  %s[\"%s\"] -.->|cycle| %s[\"%s\"]\n",
