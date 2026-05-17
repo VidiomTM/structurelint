@@ -12,7 +12,7 @@ on:
 jobs:
   lint:
     name: Lint Architecture
-    runs-on: self-hosted
+    runs-on: ["self-hosted", "go", "macos"]
 
     steps:
       - name: Checkout code
@@ -55,7 +55,7 @@ jobs:
   # Optional: Auto-fix violations
   autofix:
     name: Auto-fix Violations
-    runs-on: self-hosted
+    runs-on: ["self-hosted", "go", "macos"]
     if: github.event_name == 'pull_request'
 
     steps:

@@ -11,7 +11,7 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: self-hosted
+    runs-on: ["self-hosted", "go", "macos"]
 
     steps:
       - name: Checkout code
@@ -68,7 +68,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: self-hosted
+    runs-on: ["self-hosted", "go", "macos"]
 
     steps:
       - name: Checkout code
@@ -94,7 +94,7 @@ jobs:
 
   complexity:
     name: Check Complexity
-    runs-on: self-hosted
+    runs-on: ["self-hosted", "go", "macos"]
 
     steps:
       - name: Checkout code
@@ -171,7 +171,7 @@ jobs:
 
   pbt:
     name: Property Tests (rapid)
-    runs-on: self-hosted
+    runs-on: ["self-hosted", "go", "macos"]
 
     steps:
       - name: Checkout code
@@ -234,7 +234,7 @@ jobs:
 
   self-lint:
     name: Self-Lint (Dogfooding)
-    runs-on: self-hosted
+    runs-on: ["self-hosted", "go", "macos"]
 
     steps:
       - name: Checkout code
