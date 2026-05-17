@@ -115,7 +115,7 @@ jobs:
   test:  # ✅ Job named "test"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: go test ./...
 ```
 
@@ -161,7 +161,7 @@ jobs:
   lint:  # ✅ Job named "lint"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: golangci/golangci-lint-action@v3
 ```
 
@@ -249,7 +249,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run tests
         run: go test ./... 2>&1 | tee test.log
       - name: Commit logs
@@ -290,7 +290,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run tests
         run: go test ./...
       - name: Generate repomix summary
@@ -318,10 +318,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
       - run: go test -v ./...
 ```
 
@@ -334,7 +334,7 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: github/codeql-action/init@v2
       - uses: github/codeql-action/analyze@v2
 ```
@@ -348,7 +348,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: golangci/golangci-lint-action@v3
 ```
 
@@ -413,10 +413,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
       - run: go test -v -race -coverprofile=coverage.txt ./...
       - run: go vet ./...
       - uses: golangci/golangci-lint-action@v3
@@ -431,7 +431,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
@@ -450,7 +450,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -469,7 +469,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
@@ -608,7 +608,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: go test ./...
 ```
 
@@ -628,5 +628,5 @@ See complete working examples:
 ## Support
 
 For issues or questions:
-- File an issue: [GitHub Issues](https://github.com/structurelint/structurelint/issues)
+- File an issue: [GitHub Issues](https://github.com/Jonathangadeaharder/structurelint/issues)
 - Read the docs: [README.md](../README.md)

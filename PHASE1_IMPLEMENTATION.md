@@ -291,7 +291,7 @@ $ go build ./...
 
 ```bash
 # Painful multi-step process
-go install github.com/structurelint/structurelint@latest
+go install github.com/Jonathangadeaharder/structurelint@latest
 python3 -m pip install tree-sitter tree-sitter-python \
   tree-sitter-javascript tree-sitter-java tree-sitter-go \
   tree-sitter-cpp tree-sitter-c-sharp numpy pandas
@@ -301,7 +301,7 @@ python3 -m pip install tree-sitter tree-sitter-python \
 
 ```bash
 # Single command!
-go install github.com/structurelint/structurelint@latest
+go install github.com/Jonathangadeaharder/structurelint@latest
 ```
 
 ---

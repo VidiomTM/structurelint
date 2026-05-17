@@ -27,7 +27,7 @@ Be respectful, constructive, and collaborative. We aim to build a welcoming comm
    ```
 3. **Add upstream remote**:
    ```bash
-   git remote add upstream https://github.com/structurelint/structurelint.git
+   git remote add upstream https://github.com/Jonathangadeaharder/structurelint.git
    ```
 
 ## Development Setup
@@ -342,7 +342,7 @@ structurelint/
 ## Need Help?
 
 - 📖 Read the [README.md](README.md)
-- 🐛 Report bugs via [GitHub Issues](https://github.com/structurelint/structurelint/issues)
+- 🐛 Report bugs via [GitHub Issues](https://github.com/Jonathangadeaharder/structurelint/issues)
 - 💬 Ask questions in issues or pull requests
 - 📧 Contact maintainers (see README)
 

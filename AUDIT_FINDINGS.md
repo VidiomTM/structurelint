@@ -256,7 +256,7 @@ layers:
 **Current State** (to use full features):
 ```bash
 # User must run:
-go install github.com/structurelint/structurelint@latest
+go install github.com/Jonathangadeaharder/structurelint@latest
 python3 -m pip install torch transformers faiss-cpu tree-sitter \
   tree-sitter-python tree-sitter-javascript tree-sitter-java \
   tree-sitter-go tree-sitter-cpp tree-sitter-c-sharp \
@@ -269,7 +269,7 @@ python3 -m pip install torch transformers faiss-cpu tree-sitter \
 
 **Desired State**:
 ```bash
-go install github.com/structurelint/structurelint@latest
+go install github.com/Jonathangadeaharder/structurelint@latest
 ```
 
 **Size**: ~20MB download, ~50MB disk space
@@ -601,7 +601,7 @@ go install github.com/structurelint/structurelint@latest
    - Works with vim, emacs, Sublime, etc.
 
 3. **GitHub Actions**:
-   - Official action: `structurelint/structurelint-action`
+   - Official action: `Jonathangadeaharder/structurelint-action`
    - PR comments with violation summary
    - Fail checks on violations
 

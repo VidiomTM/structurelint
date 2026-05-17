@@ -348,7 +348,7 @@ The following enhancements were discussed but not yet implemented:
 ## Contributing
 
 Have ideas for more enhancements? Open an issue or PR at:
-[https://github.com/structurelint/structurelint](https://github.com/structurelint/structurelint)
+[https://github.com/Jonathangadeaharder/structurelint](https://github.com/Jonathangadeaharder/structurelint)
 
 ---
 

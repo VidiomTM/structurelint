@@ -21,7 +21,7 @@ structurelint can be integrated with [pre-commit](https://pre-commit.com/) to au
 
    ```yaml
    repos:
-     - repo: https://github.com/structurelint/structurelint
+     - repo: https://github.com/Jonathangadeaharder/structurelint
        rev: v0.1.0  # Use the latest release tag
        hooks:
          - id: structurelint
@@ -105,7 +105,7 @@ By default, structurelint runs on the entire project. To run only on changed fil
 
 ```yaml
 repos:
-  - repo: https://github.com/structurelint/structurelint
+  - repo: https://github.com/Jonathangadeaharder/structurelint
     rev: v0.1.0
     hooks:
       - id: structurelint
@@ -120,7 +120,7 @@ Pass additional arguments to structurelint:
 
 ```yaml
 repos:
-  - repo: https://github.com/structurelint/structurelint
+  - repo: https://github.com/Jonathangadeaharder/structurelint
     rev: v0.1.0
     hooks:
       - id: structurelint
@@ -144,7 +144,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
@@ -159,10 +159,10 @@ Make sure structurelint is built and available:
 
 ```bash
 # Manual installation
-go install github.com/structurelint/structurelint/cmd/structurelint@latest
+go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
 
 # Or build from source
-git clone https://github.com/structurelint/structurelint.git
+git clone https://github.com/Jonathangadeaharder/structurelint.git
 cd structurelint
 go build -o structurelint ./cmd/structurelint
 sudo cp structurelint /usr/local/bin/
@@ -190,7 +190,7 @@ Ensure `.structurelint.yml` is in your project root, or specify the path:
 
 ```yaml
 repos:
-  - repo: https://github.com/structurelint/structurelint
+  - repo: https://github.com/Jonathangadeaharder/structurelint
     rev: v0.1.0
     hooks:
       - id: structurelint
@@ -237,8 +237,8 @@ git commit -m "Add user authentication"
 ## Resources
 
 - [pre-commit documentation](https://pre-commit.com/)
-- [structurelint documentation](https://github.com/structurelint/structurelint)
-- [Example configurations](https://github.com/structurelint/structurelint/tree/main/testdata/fixtures)
+- [structurelint documentation](https://github.com/Jonathangadeaharder/structurelint)
+- [Example configurations](https://github.com/Jonathangadeaharder/structurelint/tree/main/testdata/fixtures)
 
 ---
 

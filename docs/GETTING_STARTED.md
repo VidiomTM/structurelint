@@ -29,7 +29,7 @@ Think of it as ESLint or Pylint, but for your project's architecture.
 ### Option 1: Go Install (Recommended)
 
 ```bash
-go install github.com/structurelint/structurelint/cmd/structurelint@latest
+go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
 ```
 
 Verify installation:
@@ -39,16 +39,16 @@ structurelint --version
 
 ### Option 2: Download Binary
 
-Download from the [releases page](https://github.com/structurelint/structurelint/releases):
+Download from the [releases page](https://github.com/Jonathangadeaharder/structurelint/releases):
 
 ```bash
 # Linux (amd64)
-curl -L https://github.com/structurelint/structurelint/releases/latest/download/structurelint-linux-amd64 -o structurelint
+curl -L https://github.com/Jonathangadeaharder/structurelint/releases/latest/download/structurelint-linux-amd64 -o structurelint
 chmod +x structurelint
 sudo mv structurelint /usr/local/bin/
 
 # macOS (Apple Silicon)
-curl -L https://github.com/structurelint/structurelint/releases/latest/download/structurelint-darwin-arm64 -o structurelint
+curl -L https://github.com/Jonathangadeaharder/structurelint/releases/latest/download/structurelint-darwin-arm64 -o structurelint
 chmod +x structurelint
 sudo mv structurelint /usr/local/bin/
 
@@ -59,7 +59,7 @@ sudo mv structurelint /usr/local/bin/
 ### Option 3: Build from Source
 
 ```bash
-git clone https://github.com/structurelint/structurelint.git
+git clone https://github.com/Jonathangadeaharder/structurelint.git
 cd structurelint
 go build -o structurelint ./cmd/structurelint
 sudo mv structurelint /usr/local/bin/
@@ -575,8 +575,8 @@ exclude:
 
 - [README](../README.md) - Full documentation
 - [Example configurations](../testdata/fixtures)
-- [GitHub repository](https://github.com/structurelint/structurelint)
-- [Issue tracker](https://github.com/structurelint/structurelint/issues)
+- [GitHub repository](https://github.com/Jonathangadeaharder/structurelint)
+- [Issue tracker](https://github.com/Jonathangadeaharder/structurelint/issues)
 
 ## Get Help
 

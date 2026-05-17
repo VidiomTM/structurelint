@@ -194,21 +194,21 @@ Error: failed to parse file example.java:
 ### Go Install (Recommended)
 
 ```bash
-go install github.com/structurelint/structurelint/cmd/structurelint@latest
+go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
 ```
 
 ### Download Binary
 
-Download pre-built binaries from the [releases page](https://github.com/structurelint/structurelint/releases):
+Download pre-built binaries from the [releases page](https://github.com/Jonathangadeaharder/structurelint/releases):
 
 ```bash
 # Linux (amd64)
-curl -L https://github.com/structurelint/structurelint/releases/latest/download/structurelint-linux-amd64 -o structurelint
+curl -L https://github.com/Jonathangadeaharder/structurelint/releases/latest/download/structurelint-linux-amd64 -o structurelint
 chmod +x structurelint
 sudo mv structurelint /usr/local/bin/
 
 # macOS (Apple Silicon)
-curl -L https://github.com/structurelint/structurelint/releases/latest/download/structurelint-darwin-arm64 -o structurelint
+curl -L https://github.com/Jonathangadeaharder/structurelint/releases/latest/download/structurelint-darwin-arm64 -o structurelint
 chmod +x structurelint
 sudo mv structurelint /usr/local/bin/
 ```
@@ -216,7 +216,7 @@ sudo mv structurelint /usr/local/bin/
 ### Build from Source
 
 ```bash
-git clone https://github.com/structurelint/structurelint.git
+git clone https://github.com/Jonathangadeaharder/structurelint.git
 cd structurelint
 go build -o structurelint ./cmd/structurelint
 ```
@@ -552,10 +552,10 @@ jobs:
   structurelint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Run structurelint
         run: |
-          go install github.com/structurelint/structurelint/cmd/structurelint@latest
+          go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
           structurelint .
 ```
 
@@ -777,9 +777,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
       - run: go test -v -race -coverprofile=coverage.txt ./...
 ```
 
@@ -2058,7 +2058,7 @@ See [docs/FILE_CONTENT_TEMPLATES.md](docs/FILE_CONTENT_TEMPLATES.md) for complet
 ### Contributing
 
 - 🤝 **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to structurelint
-- 🐛 **[Issue Tracker](https://github.com/structurelint/structurelint/issues)** - Report bugs or request features
+- 🐛 **[Issue Tracker](https://github.com/Jonathangadeaharder/structurelint/issues)** - Report bugs or request features
 - 📋 **[Pull Request Template](.github/pull_request_template.md)** - Submit changes
 
 ### Project Information
@@ -2080,9 +2080,9 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## Support
 
-- 💬 Ask questions in [GitHub Issues](https://github.com/structurelint/structurelint/issues)
+- 💬 Ask questions in [GitHub Issues](https://github.com/Jonathangadeaharder/structurelint/issues)
 - 📖 Read the [documentation](docs/)
-- 🤝 Contribute via [pull requests](https://github.com/structurelint/structurelint/pulls)
+- 🤝 Contribute via [pull requests](https://github.com/Jonathangadeaharder/structurelint/pulls)
 
 ---
 

@@ -335,5 +335,5 @@ jobs:
 ## Support
 
 For issues or questions:
-- File an issue: https://github.com/structurelint/structurelint/issues
-- Discussions: https://github.com/structurelint/structurelint/discussions
+- File an issue: https://github.com/Jonathangadeaharder/structurelint/issues
+- Discussions: https://github.com/Jonathangadeaharder/structurelint/discussions

@@ -261,10 +261,10 @@ jobs:
   clones:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Install structurelint
         run: |
-          go install github.com/structurelint/structurelint/cmd/structurelint@latest
+          go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
       - name: Detect clones
         run: |
           structurelint clones --format json --min-tokens 50 > clones.json
@@ -409,5 +409,5 @@ structurelint clones --min-tokens 30 internal/
 
 For issues, questions, or feature requests:
 
-- GitHub Issues: https://github.com/structurelint/structurelint/issues
-- Documentation: https://github.com/structurelint/structurelint/tree/main/docs
+- GitHub Issues: https://github.com/Jonathangadeaharder/structurelint/issues
+- Documentation: https://github.com/Jonathangadeaharder/structurelint/tree/main/docs

@@ -21,13 +21,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install Structurelint
         run: |
-          go install github.com/structurelint/structurelint@latest
+          go install github.com/Jonathangadeaharder/structurelint@latest
           # Or use a specific version:
-          # go install github.com/structurelint/structurelint@v2.2.0
+          # go install github.com/Jonathangadeaharder/structurelint@v2.2.0
 
       - name: Run Structurelint
         run: structurelint --format json > structurelint-results.json
@@ -68,10 +68,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install Structurelint
-        run: go install github.com/structurelint/structurelint@latest
+        run: go install github.com/Jonathangadeaharder/structurelint@latest
 
       - name: Apply auto-fixes
         run: |

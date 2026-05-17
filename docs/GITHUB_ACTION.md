@@ -19,15 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install structurelint
-        run: go install github.com/structurelint/structurelint/cmd/structurelint@latest
+        run: go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
 
       - name: Run structurelint
         run: structurelint
@@ -80,20 +80,20 @@ on:
 
 ```yaml
 - name: Install structurelint
-  run: go install github.com/structurelint/structurelint/cmd/structurelint@v0.1.0
+  run: go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@v0.1.0
 ```
 
 #### Cache Go modules for faster builds
 
 ```yaml
 - name: Set up Go
-  uses: actions/setup-go@v5
+  uses: actions/setup-go@v6
   with:
-    go-version: '1.21'
+    go-version: '1.24'
     cache: true
 
 - name: Cache structurelint
-  uses: actions/cache@v3
+  uses: actions/cache@v5
   with:
     path: ~/go/bin/structurelint
     key: ${{ runner.os }}-structurelint-${{ hashFiles('**/go.sum') }}
@@ -112,15 +112,15 @@ jobs:
   structurelint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install and run structurelint
         run: |
-          go install github.com/structurelint/structurelint/cmd/structurelint@latest
+          go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
           structurelint
 ```
 
@@ -138,15 +138,15 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install tools
         run: |
-          go install github.com/structurelint/structurelint/cmd/structurelint@latest
+          go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
           go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
       - name: Run linters
@@ -172,14 +172,14 @@ jobs:
       matrix:
         project: [frontend, backend, shared]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install structurelint
-        run: go install github.com/structurelint/structurelint/cmd/structurelint@latest
+        run: go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
 
       - name: Lint ${{ matrix.project }}
         working-directory: ./${{ matrix.project }}
@@ -197,14 +197,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install structurelint
-        run: go install github.com/structurelint/structurelint/cmd/structurelint@latest
+        run: go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
 
       - name: Run structurelint with custom config
         run: structurelint --config .structurelint.custom.yml
@@ -221,14 +221,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install structurelint
-        run: go install github.com/structurelint/structurelint/cmd/structurelint@latest
+        run: go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
 
       - name: Run structurelint (fail on any violation)
         run: |
@@ -255,14 +255,14 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Install structurelint
-        run: go install github.com/structurelint/structurelint/cmd/structurelint@latest
+        run: go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
 
       - name: Run structurelint
         id: lint
@@ -302,20 +302,20 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Existing steps...
       - name: Run tests
         run: npm test
 
       # Add structurelint
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.21'
+          go-version: '1.24'
 
       - name: Check project structure
         run: |
-          go install github.com/structurelint/structurelint/cmd/structurelint@latest
+          go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
           structurelint
 ```
 
@@ -328,7 +328,7 @@ Ensure Go is set up and the binary is in PATH:
 ```yaml
 - name: Install structurelint
   run: |
-    go install github.com/structurelint/structurelint/cmd/structurelint@latest
+    go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
     export PATH=$PATH:$(go env GOPATH)/bin
     structurelint
 ```
@@ -343,7 +343,7 @@ Cache the structurelint binary:
 
 ```yaml
 - name: Cache structurelint
-  uses: actions/cache@v3
+  uses: actions/cache@v5
   with:
     path: ~/go/bin/structurelint
     key: structurelint-${{ runner.os }}-${{ hashFiles('go.sum') }}
@@ -351,7 +351,7 @@ Cache the structurelint binary:
 - name: Install structurelint if not cached
   run: |
     if [ ! -f ~/go/bin/structurelint ]; then
-      go install github.com/structurelint/structurelint/cmd/structurelint@latest
+      go install github.com/Jonathangadeaharder/structurelint/cmd/structurelint@latest
     fi
 ```
 
@@ -375,8 +375,8 @@ Add a badge to your README:
 ## Resources
 
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [structurelint Documentation](https://github.com/structurelint/structurelint)
-- [Example workflows](https://github.com/structurelint/structurelint/tree/main/.github/workflows)
+- [structurelint Documentation](https://github.com/Jonathangadeaharder/structurelint)
+- [Example workflows](https://github.com/Jonathangadeaharder/structurelint/tree/main/.github/workflows)
 
 ---
 

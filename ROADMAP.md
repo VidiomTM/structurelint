@@ -39,7 +39,7 @@ pip install torch transformers faiss-cpu tree-sitter ...
 Target installation:
 ```bash
 # Just Go
-go install github.com/structurelint/structurelint@latest
+go install github.com/Jonathangadeaharder/structurelint@latest
 ```
 
 **Impact**:
