@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/Jonathangadeaharder/structurelint/internal/rules"
@@ -30,7 +29,7 @@ func (r *LinterConfigRule) Check(files []walker.FileInfo, _ map[string]*walker.D
 	// Index root-level files.
 	rootFiles := make(map[string]walker.FileInfo)
 	for _, f := range files {
-		if !f.IsDir && !strings.Contains(f.Path, "/") {
+		if !f.IsDir && f.ParentPath == "" {
 			rootFiles[f.Path] = f
 		}
 	}
