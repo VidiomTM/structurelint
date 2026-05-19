@@ -100,7 +100,7 @@ def test_config_loading():
     config = CloneDetectionConfig()
     assert config.model.name == "microsoft/graphcodebert-base"
     assert config.index.dimension == 768
-    assert config.query.default_similarity == 0.95
+    assert config.query.default_similarity == pytest.approx(0.95)
 
 
 if __name__ == "__main__":

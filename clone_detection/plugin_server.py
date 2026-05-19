@@ -190,12 +190,25 @@ async def detect_clones(request: SemanticCloneRequest) -> SemanticCloneResponse:
                         device="cpu"  # TODO: Support GPU via config
                     )
 
+        # Validate and sanitize source directory to prevent path traversal
+        source_path = Path(request.source_dir).resolve()
+        if not source_path.exists():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Source directory does not exist: {request.source_dir}"
+            )
+        if not source_path.is_dir():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Path is not a directory: {request.source_dir}"
+            )
+
         # Parse source files
-        logger.info(f"Parsing source directory: {request.source_dir}")
+        logger.info(f"Parsing source directory: {source_path}")
         parser = TreeSitterParser(languages=request.languages)
 
         functions = parser.parse_directory(
-            Path(request.source_dir),
+            str(source_path),
             exclude_patterns=request.exclude_patterns
         )
         logger.info(f"Found {len(functions)} functions across {len(set(f.file_path for f in functions))} files")
