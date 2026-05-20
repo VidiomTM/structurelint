@@ -12,8 +12,7 @@ on:
 jobs:
   lint:
     name: Lint Architecture
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -22,7 +21,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: '1.21'
 
       - name: Install Structurelint
         run: |
@@ -56,8 +55,8 @@ jobs:
   # Optional: Auto-fix violations
   autofix:
     name: Auto-fix Violations
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
@@ -69,7 +68,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: '1.21'
 
       - name: Install Structurelint
         run: go install github.com/structurelint/structurelint@latest

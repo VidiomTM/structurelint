@@ -53,7 +53,7 @@ func (f *RuleFactory) checkBreakingChanges() error {
 		"max-cognitive-complexity":  "Function-level complexity is out of scope. Use gocognit / ruff / eslint complexity.",
 		"max-halstead-effort":       "Function-level complexity is out of scope. Use a language-specific complexity tool.",
 		"github-workflows":          "CI YAML linting is out of scope. Use actionlint, zizmor, or yamllint.",
-		// linter-config has been revived — see internal/rules/structure/linter_config.go
+		"linter-config":             "Linter presence checks are out of scope. Use a presence rule via file-existence.",
 		"contract-framework":        "Dependency-presence checks are out of scope. Encode requirements in a presence rule via file-existence.",
 		"api-spec":                  "Replace with file-existence: `api/openapi.yaml: exists:1`.",
 		"spec-adr-enforcement":      "Replace with file-existence + naming-convention.",

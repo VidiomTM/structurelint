@@ -11,7 +11,7 @@ permissions:
 jobs:
   release:
     name: Create Release
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code

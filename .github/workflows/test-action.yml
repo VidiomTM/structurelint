@@ -10,8 +10,7 @@ on:
 jobs:
   lint-self:
     name: Lint Structurelint Project
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -20,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: '1.21'
 
       - name: Build Structurelint
         run: go build -o structurelint ./cmd/structurelint/
@@ -40,8 +39,7 @@ jobs:
 
   test-commands:
     name: Test All Commands
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -50,7 +48,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: '1.21'
 
       - name: Build Structurelint
         run: go build -o structurelint ./cmd/structurelint/
@@ -75,8 +73,7 @@ jobs:
 
   integration-test:
     name: Integration Test
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -85,7 +82,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.24'
+          go-version: '1.21'
 
       - name: Run tests
         run: go test ./... -v -race -coverprofile=coverage.out

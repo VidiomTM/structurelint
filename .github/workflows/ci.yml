@@ -11,8 +11,7 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -69,8 +68,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -96,8 +94,7 @@ jobs:
 
   complexity:
     name: Check Complexity
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -174,8 +171,7 @@ jobs:
 
   pbt:
     name: Property Tests (rapid)
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -202,8 +198,7 @@ jobs:
 
   fuzz-smoke:
     name: Fuzz Smoke Tests
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -226,21 +221,20 @@ jobs:
         run: go mod download
 
       - name: Fuzz smoke test — FuzzParse
-        run: go test ./fuzz/ -fuzz=^FuzzParse$ -fuzztime=30s
+        run: go test ./fuzz/ -fuzz=FuzzParse -fuzztime=30s
 
       - name: Fuzz smoke test — FuzzLintRule
-        run: go test ./fuzz/ -fuzz=^FuzzLintRule$ -fuzztime=30s
+        run: go test ./fuzz/ -fuzz=FuzzLintRule -fuzztime=30s
 
       - name: Fuzz smoke test — FuzzJSONOutput
-        run: go test ./fuzz/ -fuzz=^FuzzJSONOutput$ -fuzztime=30s
+        run: go test ./fuzz/ -fuzz=FuzzJSONOutput -fuzztime=30s
 
   # NOTE: Mutation testing via go-mutesting is NOT compatible with Go 1.26 (StdSizes nil pointer).
   # Re-enable when go-mutesting is updated or switch to a maintained alternative.
 
   self-lint:
     name: Self-Lint (Dogfooding)
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
-    if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code

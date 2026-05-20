@@ -5,7 +5,7 @@ on:
 
 jobs:
   review:
-    runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
+    runs-on: [self-hosted, macOS]
     permissions:
       contents: read
     steps:

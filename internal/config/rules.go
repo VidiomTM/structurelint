@@ -30,7 +30,7 @@ type MaxFilesInDirConfig struct {
 
 // MaxSubdirsConfig configures the max-subdirs rule.
 type MaxSubdirsConfig struct {
-	Max int `yaml:"max"`
+	Max int `json:"max" yaml:"max"`
 }
 
 // NamingConventionConfig configures the naming-convention rule.
@@ -59,10 +59,10 @@ type TestAdjacencyConfig struct {
 
 // TestLocationConfig configures the test-location rule.
 type TestLocationConfig struct {
-	IntegrationTestDir string   `yaml:"integration-test-dir,omitempty"`
-	AllowAdjacent      bool     `yaml:"allow-adjacent,omitempty"`
-	FilePatterns       []string `yaml:"file-patterns,omitempty"`
-	Exemptions         []string `yaml:"exemptions,omitempty"`
+	IntegrationTestDir string   `json:"integration-test-dir" yaml:"integration-test-dir,omitempty"`
+	AllowAdjacent      bool     `json:"allow-adjacent" yaml:"allow-adjacent,omitempty"`
+	FilePatterns       []string `json:"file-patterns" yaml:"file-patterns,omitempty"`
+	Exemptions         []string `json:"exemptions" yaml:"exemptions,omitempty"`
 }
 
 // EnforceLayerBoundariesConfig configures the enforce-layer-boundaries rule.
