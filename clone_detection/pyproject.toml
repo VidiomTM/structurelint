@@ -7,7 +7,7 @@ name = "semantic-clone-detection"
 version = "0.1.0"
 description = "Semantic code clone detection using GraphCodeBERT and FAISS"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [
     {name = "structurelint", email = "structurelint@example.com"}
@@ -18,10 +18,8 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Quality Assurance",
 ]
 
@@ -103,7 +101,7 @@ clone_detection = ["py.typed", "config/*.yaml"]
 
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py312', 'py313']
 include = '\.pyi?$'
 
 [tool.isort]
@@ -112,7 +110,7 @@ line_length = 100
 multi_line_output = 3
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -129,4 +127,4 @@ addopts = "-v --cov=clone_detection --cov-report=term-missing"
 line-length = 100
 select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["E501"]
-target-version = "py38"
+target-version = "py312"
