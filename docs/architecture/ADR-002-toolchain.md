@@ -3,6 +3,8 @@
 **Status:** Accepted  
 **Date:** 2026-05-17  
 **Deciders:** Project team  
+**Authors:** Jonathan Gadea Harder
+**Reviewers:** Jonathan Gadea Harder
 **References:** [.golangci.yml](../../.golangci.yml), [go.mod](../../go.mod), [ci.yml](../../.github/workflows/ci.yml)
 
 ---

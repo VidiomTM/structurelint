@@ -3,6 +3,8 @@
 **Status:** Accepted  
 **Date:** 2026-05-17  
 **Deciders:** Project team  
+**Authors:** Jonathan Gadea Harder
+**Reviewers:** Jonathan Gadea Harder
 **References:** [DESIGN.md](../DESIGN.md), [README.md](../README.md), [IMPLEMENTATION_SUMMARY.md](../IMPLEMENTATION_SUMMARY.md)
 
 ---

@@ -3,6 +3,8 @@
 **Status:** Accepted  
 **Date:** 2026-05-17  
 **Deciders:** Project team  
+**Authors:** Jonathan Gadea Harder
+**Reviewers:** Jonathan Gadea Harder
 **References:** [DESIGN.md §Rules Engine](../DESIGN.md), [RULES.md](../RULES.md), [CLONE_DETECTION_ARCHITECTURE.md](../CLONE_DETECTION_ARCHITECTURE.md), [MIXED_LANGUAGE_ARCHITECTURE.md](../MIXED_LANGUAGE_ARCHITECTURE.md)
 
 ---

@@ -3,6 +3,8 @@
 **Status:** Accepted  
 **Date:** 2026-05-17  
 **Deciders:** Project team  
+**Authors:** Jonathan Gadea Harder
+**Reviewers:** Jonathan Gadea Harder
 **References:** [DESIGN.md §Testing Strategy](../DESIGN.md), [ci.yml](../../.github/workflows/ci.yml), [TEST_AAA_PATTERN.md](../TEST_AAA_PATTERN.md), [TEST_GWT_NAMING.md](../TEST_GWT_NAMING.md), [TEST_VALIDATION.md](../TEST_VALIDATION.md)
 
 ---

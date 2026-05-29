@@ -3,6 +3,8 @@
 **Status:** Accepted  
 **Date:** 2026-05-17  
 **Deciders:** Project team  
+**Authors:** Jonathan Gadea Harder
+**Reviewers:** Jonathan Gadea Harder
 **References:** [ci.yml](../../.github/workflows/ci.yml), [quality.yml](../../.github/workflows/quality.yml), [pr-agent.yml](../../.github/workflows/pr-agent.yml), [sonar-project.properties](../../sonar-project.properties)
 
 ---
