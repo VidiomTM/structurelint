@@ -581,7 +581,7 @@ func TestDetectLanguage(t *testing.T) {
 
 	t.Run("go.mod detected", func(t *testing.T) {
 		dir := t.TempDir()
-		os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module test"), 0644)
+		_ = os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module test"), 0644)
 		got := detectLanguage(dir)
 		if got != "go" {
 			t.Errorf("expected go, got %s", got)
@@ -590,8 +590,8 @@ func TestDetectLanguage(t *testing.T) {
 
 	t.Run("tsconfig.json overrides package.json", func(t *testing.T) {
 		dir := t.TempDir()
-		os.WriteFile(filepath.Join(dir, "package.json"), []byte("{}"), 0644)
-		os.WriteFile(filepath.Join(dir, "tsconfig.json"), []byte("{}"), 0644)
+		_ = os.WriteFile(filepath.Join(dir, "package.json"), []byte("{}"), 0644)
+		_ = os.WriteFile(filepath.Join(dir, "tsconfig.json"), []byte("{}"), 0644)
 		got := detectLanguage(dir)
 		if got != "typescript" {
 			t.Errorf("expected typescript, got %s", got)
@@ -600,7 +600,7 @@ func TestDetectLanguage(t *testing.T) {
 
 	t.Run("package.json only defaults to typescript", func(t *testing.T) {
 		dir := t.TempDir()
-		os.WriteFile(filepath.Join(dir, "package.json"), []byte("{}"), 0644)
+		_ = os.WriteFile(filepath.Join(dir, "package.json"), []byte("{}"), 0644)
 		got := detectLanguage(dir)
 		if got != "typescript" {
 			t.Errorf("expected typescript, got %s", got)
@@ -609,7 +609,7 @@ func TestDetectLanguage(t *testing.T) {
 
 	t.Run("requirements.txt detected", func(t *testing.T) {
 		dir := t.TempDir()
-		os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte(""), 0644)
+		_ = os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte(""), 0644)
 		got := detectLanguage(dir)
 		if got != "python" {
 			t.Errorf("expected python, got %s", got)
@@ -618,7 +618,7 @@ func TestDetectLanguage(t *testing.T) {
 
 	t.Run("pom.xml detected", func(t *testing.T) {
 		dir := t.TempDir()
-		os.WriteFile(filepath.Join(dir, "pom.xml"), []byte(""), 0644)
+		_ = os.WriteFile(filepath.Join(dir, "pom.xml"), []byte(""), 0644)
 		got := detectLanguage(dir)
 		if got != "java" {
 			t.Errorf("expected java, got %s", got)
@@ -627,7 +627,7 @@ func TestDetectLanguage(t *testing.T) {
 
 	t.Run("build.gradle detected", func(t *testing.T) {
 		dir := t.TempDir()
-		os.WriteFile(filepath.Join(dir, "build.gradle"), []byte(""), 0644)
+		_ = os.WriteFile(filepath.Join(dir, "build.gradle"), []byte(""), 0644)
 		got := detectLanguage(dir)
 		if got != "java" {
 			t.Errorf("expected java, got %s", got)
@@ -636,7 +636,7 @@ func TestDetectLanguage(t *testing.T) {
 
 	t.Run("setup.py detected", func(t *testing.T) {
 		dir := t.TempDir()
-		os.WriteFile(filepath.Join(dir, "setup.py"), []byte(""), 0644)
+		_ = os.WriteFile(filepath.Join(dir, "setup.py"), []byte(""), 0644)
 		got := detectLanguage(dir)
 		if got != "python" {
 			t.Errorf("expected python, got %s", got)
@@ -688,7 +688,7 @@ func TestRunScaffold_MissingArgs(t *testing.T) {
 
 func TestRunScaffold_UnknownType(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module test"), 0644)
+	_ = os.WriteFile(filepath.Join(dir, "go.mod"), []byte("module test"), 0644)
 	origWd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("failed to get working dir: %v", err)

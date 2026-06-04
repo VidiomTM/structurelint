@@ -207,7 +207,7 @@ func TestDeepRelativeImports_AbsoluteImport(t *testing.T) {
 	code := `package main
 import "fmt"
 `
-	os.WriteFile(fixture, []byte(code), 0644)
+	_ = os.WriteFile(fixture, []byte(code), 0644)
 	r := NewDeepRelativeImportsRule(3)
 	v := r.Check([]walker.FileInfo{
 		{AbsPath: fixture, Path: "service.go"},
