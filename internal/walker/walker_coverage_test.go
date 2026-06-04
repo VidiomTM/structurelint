@@ -279,7 +279,7 @@ func TestWalk_WalkDirError(t *testing.T) {
 	requireNoError(t, os.MkdirAll(subDir, 0755))
 	requireNoError(t, os.WriteFile(filepath.Join(subDir, "f.txt"), []byte("x"), 0644))
 	requireNoError(t, os.Chmod(subDir, 0))
-	defer os.Chmod(subDir, 0755)
+	defer func() { _ = os.Chmod(subDir, 0755) }()
 
 	w := New(tmpDir)
 	err := w.Walk()

@@ -38,7 +38,7 @@ func TestMoveFileAction_WriteTargetFail(t *testing.T) {
 	}
 	err := a.Apply()
 	assert.Error(t, err)
-	os.Chmod(targetDir, 0755)
+	require.NoError(t, os.Chmod(targetDir, 0755))
 }
 
 func TestWriteFileAction_BackupWriteFail(t *testing.T) {

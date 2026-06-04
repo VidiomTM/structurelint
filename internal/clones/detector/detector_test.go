@@ -98,8 +98,8 @@ func TestFindGoFiles_Basic(t *testing.T) {
 
 func TestFindGoFiles_WithExclude(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), 0644)
-	os.WriteFile(filepath.Join(dir, "main_test.go"), []byte("package main"), 0644)
+	_ = os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main"), 0644)
+	_ = os.WriteFile(filepath.Join(dir, "main_test.go"), []byte("package main"), 0644)
 
 	d := NewDetector(DefaultConfig())
 	files, err := d.findGoFiles(dir)
@@ -306,8 +306,8 @@ func divide(x, y int) int {
 	return result
 }
 `
-	os.WriteFile(filepath.Join(dir, "main.go"), []byte(code), 0644)
-	os.WriteFile(filepath.Join(dir, "utils.go"), []byte(code2), 0644)
+	_ = os.WriteFile(filepath.Join(dir, "main.go"), []byte(code), 0644)
+	_ = os.WriteFile(filepath.Join(dir, "utils.go"), []byte(code2), 0644)
 
 	d := NewDetector(Config{MinTokens: 5, MinLines: 2, KGramSize: 12, NumWorkers: 2, CrossFileOnly: false})
 	clones, err := d.DetectClones(dir)

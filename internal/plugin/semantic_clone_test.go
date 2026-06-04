@@ -71,7 +71,7 @@ func TestHTTPPluginClient_DetectClones_Success(t *testing.T) {
 func TestHTTPPluginClient_DetectClones_NonOK(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("server error"))
+		_, _ = w.Write([]byte("server error"))
 	}))
 	defer server.Close()
 
@@ -89,7 +89,7 @@ func TestHTTPPluginClient_DetectClones_NonOK(t *testing.T) {
 func TestHTTPPluginClient_DetectClones_ErrorInResponse(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"clones":[],"error":"analysis failed"}`))
+		_, _ = w.Write([]byte(`{"clones":[],"error":"analysis failed"}`))
 	}))
 	defer server.Close()
 
@@ -125,7 +125,7 @@ func TestHTTPPluginClient_Health_Success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/health", r.URL.Path)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"status":"healthy","version":"1.0.0","capabilities":["clone-detection"]}`))
+		_, _ = w.Write([]byte(`{"status":"healthy","version":"1.0.0","capabilities":["clone-detection"]}`))
 	}))
 	defer server.Close()
 
