@@ -328,8 +328,8 @@ func sub(a, b int) int { return a - b }
 func add(a, b int) int { return a + b }
 func mul(a, b int) int { return a * b }
 `
-	os.WriteFile(filepath.Join(dir, "main.go"), []byte(code), 0644)
-	os.WriteFile(filepath.Join(dir, "utils.go"), []byte(code2), 0644)
+	_ = os.WriteFile(filepath.Join(dir, "main.go"), []byte(code), 0644)
+	_ = os.WriteFile(filepath.Join(dir, "utils.go"), []byte(code2), 0644)
 
 	d := NewDetector(Config{MinTokens: 3, MinLines: 1, KGramSize: 8, NumWorkers: 2, CrossFileOnly: true})
 	clones, err := d.DetectClones(dir)
@@ -341,10 +341,10 @@ func mul(a, b int) int { return a * b }
 
 func TestNormalizeFiles_WithRealFiles(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "f1.go"), []byte(`package main
+	_ = os.WriteFile(filepath.Join(dir, "f1.go"), []byte(`package main
 func hello() string { return "hello" }
 `), 0644)
-	os.WriteFile(filepath.Join(dir, "f2.go"), []byte(`package main
+	_ = os.WriteFile(filepath.Join(dir, "f2.go"), []byte(`package main
 func world() string { return "world" }
 `), 0644)
 
