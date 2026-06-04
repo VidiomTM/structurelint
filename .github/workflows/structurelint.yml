@@ -41,7 +41,7 @@ jobs:
       - name: Check for violations
         run: |
           if [ -s structurelint-results.json ]; then
-            violations=$(jq '. | length' structurelint-results.json)
+            violations=$(jq '.violations' structurelint-results.json)
             if [ "$violations" -gt 0 ]; then
               echo "❌ Found $violations architectural violation(s)"
               structurelint  # Re-run for human-readable output
@@ -73,7 +73,7 @@ jobs:
 
       - name: Apply auto-fixes
         run: |
-          if structurelint fix --dry-run | grep -q "fixable"; then
+          if ! structurelint fix --dry-run | grep -q "No fixable violations found"; then
             structurelint fix --auto
             echo "fixes_applied=true" >> $GITHUB_OUTPUT
           else
