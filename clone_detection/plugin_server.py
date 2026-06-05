@@ -13,20 +13,18 @@ import logging
 import time
 from pathlib import Path
 from threading import Lock
-from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 import uvicorn
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 # Import clone detection modules (these require heavy dependencies)
 try:
     from clone_detection.embeddings.graphcodebert import GraphCodeBERTEmbedder
     from clone_detection.indexing.faiss_index import FAISSIndexBuilder, IndexType
     from clone_detection.parsers.tree_sitter_parser import TreeSitterParser
-    from clone_detection.query.metadata import MetadataStore
-    from clone_detection.query.search import CloneSearcher
+    from clone_detection.query.metadata import MetadataStore  # noqa: F401
+    from clone_detection.query.search import CloneSearcher  # noqa: F401
     DEPENDENCIES_AVAILABLE = True
 except ImportError as e:
     DEPENDENCIES_AVAILABLE = False
@@ -47,7 +45,7 @@ app = FastAPI(
 )
 
 # Global state with thread-safe initialization
-embedder: Optional[GraphCodeBERTEmbedder] = None
+embedder: GraphCodeBERTEmbedder | None = None
 embedder_lock = Lock()  # Thread-safe initialization
 
 
@@ -56,11 +54,11 @@ embedder_lock = Lock()  # Thread-safe initialization
 class SemanticCloneRequest(BaseModel):
     """Request model for semantic clone detection"""
     source_dir: str = Field(..., description="Root directory to analyze")
-    languages: Optional[List[str]] = Field(
+    languages: list[str] | None = Field(
         default=["python", "go", "javascript"],
         description="Languages to analyze"
     )
-    exclude_patterns: Optional[List[str]] = Field(
+    exclude_patterns: list[str] | None = Field(
         default=["**/*_test.*", "**/node_modules/**", "**/vendor/**"],
         description="Glob patterns to exclude"
     )
@@ -86,7 +84,7 @@ class SemanticClone(BaseModel):
     target_start_line: int
     target_end_line: int
     similarity: float
-    explanation: Optional[str] = None
+    explanation: str | None = None
 
 
 class SemanticCloneStats(BaseModel):
@@ -99,21 +97,21 @@ class SemanticCloneStats(BaseModel):
 
 class SemanticCloneResponse(BaseModel):
     """Response model for semantic clone detection"""
-    clones: List[SemanticClone]
+    clones: list[SemanticClone]
     stats: SemanticCloneStats
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class HealthResponse(BaseModel):
     """Health check response"""
     status: str  # "healthy", "degraded", "unhealthy"
     version: str = "0.1.0"
-    capabilities: List[str] = [
+    capabilities: list[str] = [
         "semantic-clone-detection",
         "graphcodebert-embeddings",
         "faiss-indexing"
     ]
-    message: Optional[str] = None
+    message: str | None = None
 
 
 # --- API Endpoints ---
@@ -305,7 +303,7 @@ async def detect_clones(request: SemanticCloneRequest) -> SemanticCloneResponse:
         )
 
     except Exception as e:
-        logger.error(f"Clone detection failed: {e}", exc_info=True)
+        logger.error("Clone detection failed", exc_info=True)
         duration_ms = int((time.time() - start_time) * 1000)
 
         return SemanticCloneResponse(
