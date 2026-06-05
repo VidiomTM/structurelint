@@ -37,6 +37,14 @@ jobs:
         run: |
           go test -v -race -covermode=atomic -coverprofile=coverage.out ./... 2>&1 | tee test.log
 
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage.out
+          retention-days: 1
+          if-no-files-found: error
+
       - name: Upload test logs on failure
         if: failure()
         uses: actions/upload-artifact@v7
@@ -70,6 +78,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Download coverage report
+        uses: actions/download-artifact@v8
+        with:
+          name: coverage-report
+          path: .
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v3
         env:
