@@ -12,6 +12,7 @@ jobs:
   release:
     name: Create Release
     runs-on: self-hosted
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code

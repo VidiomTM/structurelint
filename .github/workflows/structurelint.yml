@@ -13,6 +13,7 @@ jobs:
   lint:
     name: Lint Architecture
     runs-on: self-hosted
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code
@@ -54,6 +55,7 @@ jobs:
   autofix:
     name: Auto-fix Violations
     runs-on: self-hosted
+    timeout-minutes: 25
     if: github.event_name == 'pull_request'
 
     steps:

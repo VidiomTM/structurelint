@@ -13,6 +13,7 @@ concurrency:
 jobs:
   pr-agent:
     runs-on: ["self-hosted", "macos", "arm64", "VidiomTM"]
+    timeout-minutes: 25
     if: github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read

@@ -33,6 +33,7 @@ jobs:
   repomix:
     name: Generate Repomixed Codebase
     runs-on: self-hosted
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code

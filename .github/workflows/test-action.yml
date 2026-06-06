@@ -11,6 +11,7 @@ jobs:
   lint-self:
     name: Lint Structurelint Project
     runs-on: self-hosted
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code
@@ -40,6 +41,7 @@ jobs:
   test-commands:
     name: Test All Commands
     runs-on: self-hosted
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code
@@ -75,6 +77,7 @@ jobs:
   integration-test:
     name: Integration Test
     runs-on: self-hosted
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code
